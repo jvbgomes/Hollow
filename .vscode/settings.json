@@ -1,0 +1,11 @@
+{
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.arguments": [
+        "--compile-commands-dir=/home/joaozin/repos/Hollow/build",
+        "--header-insertion=never"
+    ],
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.configureArgs": [
+        "-DSFML_DIR=/run/host/usr/lib64/cmake/SFML"
+    ]
+}

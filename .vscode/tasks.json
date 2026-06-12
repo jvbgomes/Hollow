@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build & Run",
+            "type": "shell",
+            "command": "flatpak-spawn --host bash -c 'cmake --build /home/joaozin/repos/Hollow/build && /home/joaozin/repos/Hollow/build/Hollow'",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
