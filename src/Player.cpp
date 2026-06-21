@@ -1,5 +1,6 @@
 #include "Player.hpp"
 #include "Map.hpp"
+#include <cmath>
 
 Player::Player(float x, float y) : Entity(x, y) {
     speed = 150.f;
@@ -8,7 +9,9 @@ Player::Player(float x, float y) : Entity(x, y) {
     isSprinting = false;
     health = 3;
     diaryPages = 0;
-    saltLanterns = 0;
+    saltLanterns = 3;
+    hasKeyItem = false;
+    lastDirection = sf::Vector2f(1.f, 0.f);
 
     // Placeholder visual até ter sprite real
     sf::Image img;
@@ -35,9 +38,14 @@ void Player::handleInput() {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) velocity.y =  currentSpeed;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) velocity.x = -currentSpeed;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) velocity.x =  currentSpeed;
+
+    if (velocity.x != 0.f || velocity.y != 0.f) {
+        float len = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        lastDirection = velocity / len;
+    }
 }
 
-void Player::update(float dt, const Map& map) {
+void Player::update(float dt, const Map& map, sf::Vector2f playerPosition) {
     handleInput();
 
     if (isSprinting && stamina > 0) {
@@ -76,3 +84,17 @@ int   Player::getHealth()       const { return health; }
 int   Player::getDiaryPages()   const { return diaryPages; }
 int   Player::getSaltLanterns() const { return saltLanterns; }
 float Player::getStamina()      const { return stamina; }
+sf::Vector2f Player::getDirection() const { return lastDirection; }
+bool  Player::hasKey()          const { return hasKeyItem; }
+
+void Player::addPage()    { diaryPages++; }
+void Player::addLantern() { saltLanterns++; }
+void Player::collectKey() { hasKeyItem = true; }
+
+bool Player::useLantern() {
+    if (saltLanterns > 0) {
+        saltLanterns--;
+        return true;
+    }
+    return false;
+}
