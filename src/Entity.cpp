@@ -14,3 +14,7 @@ void Entity::setPosition(float x, float y) {
     position = sf::Vector2f(x, y);
     sprite.setPosition(position);
 }
+
+sf::FloatRect Entity::getBounds() const {
+    return sprite.getGlobalBounds();
+}
