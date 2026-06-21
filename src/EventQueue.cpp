@@ -1,5 +1,4 @@
 #include "EventQueue.hpp"
-#include <iostream>
 
 EventQueue::EventQueue() 
     : head(nullptr), tail(nullptr), displayTimer(0.0f), displayDuration(2.5f), hasActiveMessage(false) {
