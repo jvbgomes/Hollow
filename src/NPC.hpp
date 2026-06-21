@@ -14,7 +14,7 @@ public:
     NPC(std::string npcName, float x, float y, const sf::Texture& npcTexture, sf::IntRect textureRect);
     ~NPC() override = default;
 
-    void update(float deltaTime, const Map& map) override;
+    void update(float deltaTime, const Map& map, sf::Vector2f playerPosition) override;
     void draw(sf::RenderWindow& window) override;
 
     void addDialogueOption(int optionIndex, const std::vector<std::string>& sentences);

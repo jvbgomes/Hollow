@@ -9,7 +9,7 @@ NPC::NPC(std::string npcName, float x, float y, const sf::Texture& npcTexture, s
     dialogueQueues.resize(3);
 }
 
-void NPC::update(float deltaTime, const Map& map) {
+void NPC::update(float deltaTime, const Map& map, sf::Vector2f playerPosition) {
     sprite.setPosition(position);
 }
 
