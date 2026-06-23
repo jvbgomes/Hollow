@@ -10,6 +10,7 @@
 #include "EventQueue.hpp"
 #include "Enemy.hpp"
 #include "Projectile.hpp"
+#include "HUD.hpp"
 
 enum class GameState {
     Menu,
@@ -29,10 +30,19 @@ private:
     ItemList items;
     DialogueBox dialogueBox;
     EventQueue eventQueue;
+    HUD hud;
 
     std::vector<Enemy*> enemies;
     std::vector<NPC*> npcs;
     std::vector<Projectile> projectiles;
+
+    struct DustParticle {
+        sf::Vector2f position;
+        float speed;
+        float alpha;
+        float oscillationSpeed;
+    };
+    std::vector<DustParticle> dustParticles;
 
     sf::Texture placeholderTexture;
     sf::Font font;
@@ -45,6 +55,7 @@ private:
 
     float damageCooldown;
     float damageTimer;
+    float flickerTimer;
 
     bool keyEPressed;
     bool keyQPressed;
@@ -68,6 +79,15 @@ private:
     void renderVictory();
     void renderGameOver();
 
+    enum class MenuState { Main, CharacterSelect };
+
+    MenuState currentMenuState;
+    int mainMenuOption;
+    int characterOption;
+    int selectedSkin;
+    float gameTimer = 0.f;
+
+    void resetGame();
 public:
     Game();
     ~Game();

@@ -3,6 +3,7 @@
 #include "Spectre.hpp"
 #include "Boss.hpp"
 #include <cmath>
+#include <cstdlib>
 
 Game::Game()
     : state(GameState::Menu),
@@ -13,7 +14,12 @@ Game::Game()
       damageTimer(1.5f),
       keyEPressed(false),
       keyQPressed(false),
-      keyEnterPressed(false)
+      keyEnterPressed(false),
+      currentMenuState(MenuState::Main),
+      mainMenuOption(0),
+      characterOption(0),
+      selectedSkin(0),
+      flickerTimer(0.f)
 {
     window.create(sf::VideoMode(800, 600), "Hollow");
     window.setFramerateLimit(60);
@@ -32,18 +38,27 @@ Game::Game()
     titleText.setFont(font);
     titleText.setString("HOLLOW");
     titleText.setCharacterSize(72);
-    titleText.setFillColor(sf::Color::White);
-    titleText.setPosition(260.f, 180.f);
+    titleText.setFillColor(sf::Color(100, 100, 100, 200));
+    titleText.setPosition(400.f - titleText.getGlobalBounds().width / 2.f, 150.f);
 
     subtitleText.setFont(font);
-    subtitleText.setString("Pressione ENTER para jogar");
     subtitleText.setCharacterSize(22);
     subtitleText.setFillColor(sf::Color(160, 160, 160));
-    subtitleText.setPosition(215.f, 310.f);
 
     endText.setFont(font);
     endText.setCharacterSize(26);
     endText.setPosition(40.f, 240.f);
+
+    hud.loadFont("assets/Arial.ttf");
+
+    for (int i = 0; i < 40; ++i) {
+        DustParticle p;
+        p.position = sf::Vector2f(std::rand() % 800, std::rand() % 600);
+        p.speed = 10.f + (std::rand() % 20);
+        p.alpha = 50.f + (std::rand() % 150);
+        p.oscillationSpeed = 1.f + (std::rand() % 3);
+        dustParticles.push_back(p);
+    }
 
     setupLevel();
 }
@@ -88,6 +103,21 @@ void Game::setupLevel() {
     items.addItem(ItemType::Key,  {600.f, 500.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
 }
 
+void Game::resetGame() {
+    for (Enemy* e : enemies) delete e;
+    for (NPC* n : npcs)     delete n;
+    enemies.clear();
+    npcs.clear();
+    projectiles.clear();
+    player = Player(100.f, 100.f);
+    damageTimer = 1.5f;
+    gameTimer = 0.f;
+    currentMenuState = MenuState::Main;
+    mainMenuOption = 0;
+    characterOption = 0;
+    setupLevel();
+}
+
 void Game::run() {
     while (window.isOpen()) {
         float dt = clock.restart().asSeconds();
@@ -116,18 +146,57 @@ void Game::handleEvents() {
 void Game::update(float dt) {
     switch (state) {
         case GameState::Menu:
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
-                state = GameState::Playing;
-                keyEnterPressed = true;
+            flickerTimer += dt;
+
+            for (auto& p : dustParticles) {
+                p.position.y -= p.speed * dt;
+                p.position.x += std::sin(flickerTimer * p.oscillationSpeed) * 5.f * dt;
+                if (p.position.y < -10.f) {
+                    p.position.y = 610.f;
+                    p.position.x = std::rand() % 800;
+                }
+            }
+
+            if (currentMenuState == MenuState::Main) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+                    mainMenuOption = 0;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                    mainMenuOption = 1;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+                    if (mainMenuOption == 0) {
+                        state = GameState::Playing;
+                    } else {
+                        currentMenuState = MenuState::CharacterSelect;
+                    }
+                    keyEnterPressed = true;
+                }
+            } 
+            else if (currentMenuState == MenuState::CharacterSelect) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+                    characterOption = 0;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                    characterOption = 1;
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+                    selectedSkin = characterOption;
+                    currentMenuState = MenuState::Main;
+                    keyEnterPressed = true;
+                }
             }
             break;
+
         case GameState::Playing:
             updatePlaying(dt);
             break;
+
         case GameState::Victory:
         case GameState::GameOver:
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
-                window.close();
+                resetGame();
+                state = GameState::Menu;
                 keyEnterPressed = true;
             }
             break;
@@ -151,6 +220,14 @@ void Game::updatePlaying(float dt) {
     eventQueue.update(dt);
 
     damageTimer += dt;
+    gameTimer += dt;
+
+    hud.update(
+        player.getHealth(), 3,
+        player.getStamina(), 100.f,
+        player.getDiaryPages(), totalPages,
+        player.getSaltLanterns(), gameTimer
+    );
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q) && !keyQPressed) {
         if (player.useLantern()) {
@@ -167,7 +244,6 @@ void Game::updatePlaying(float dt) {
     checkItemCollection();
     checkVictoryCondition();
 
-    // Remove inimigos mortos
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
             delete *it;
@@ -266,7 +342,7 @@ void Game::checkVictoryCondition() {
 }
 
 void Game::render() {
-    window.clear(sf::Color::Black);
+    window.clear(sf::Color(12, 14, 18));
 
     switch (state) {
         case GameState::Menu:     renderMenu();     break;
@@ -279,39 +355,74 @@ void Game::render() {
 }
 
 void Game::renderMenu() {
+    for (const auto& p : dustParticles) {
+        sf::CircleShape dot(1.5f);
+        dot.setPosition(p.position);
+        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.4f)));
+        window.draw(dot);
+    }
+
     window.draw(titleText);
+
+    if (currentMenuState == MenuState::Main) {
+        if (mainMenuOption == 0) {
+            subtitleText.setString("> ADENTRAR A MANSAO <\n  ESCOLHER INVESTIGADOR  ");
+        } else {
+            subtitleText.setString("  ADENTRAR A MANSAO  \n> ESCOLHER INVESTIGADOR <");
+        }
+    } 
+    else if (currentMenuState == MenuState::CharacterSelect) {
+        if (characterOption == 0) {
+            subtitleText.setString("> INVESTIGADOR (JOAO) <\n  INVESTIGADORA (RADLA)  ");
+        } else {
+            subtitleText.setString("  INVESTIGADOR (JOAO)  \n> INVESTIGADORA (RADLA) <");
+        }
+    }
+
+    subtitleText.setPosition(400.f - subtitleText.getGlobalBounds().width / 2.f, 320.f);
     window.draw(subtitleText);
+
+    sf::Text creditsText;
+    creditsText.setFont(font);
+    creditsText.setCharacterSize(12);
+    creditsText.setFillColor(sf::Color(45, 48, 55));
+    creditsText.setString("Desenvolvido por Joao V. & Radla O. - LP1 UFRN");
+    creditsText.setPosition(400.f - creditsText.getGlobalBounds().width / 2.f, 560.f);
+    window.draw(creditsText);
 }
 
 void Game::renderPlaying() {
-    // Camera segue o player
     sf::View camera(player.getPosition(), sf::Vector2f(800.f, 600.f));
     window.setView(camera);
 
     map.draw(window);
     items.draw(window);
 
-    for (NPC* n : npcs)    n->draw(window);
+    for (NPC* n : npcs)     n->draw(window);
     for (Enemy* e : enemies) e->draw(window);
     for (Projectile& p : projectiles) p.draw(window);
 
     player.draw(window);
 
-    // HUD e diálogo ficam fixos na tela (view padrão)
     window.setView(window.getDefaultView());
 
     dialogueBox.draw(window);
     eventQueue.draw(window);
+    hud.draw(window);
 }
 
 void Game::renderVictory() {
+    window.clear(sf::Color(10, 30, 10));
     endText.setFillColor(sf::Color::Green);
-    endText.setString("Voce escapou da mansao!\nPressione ENTER para sair.");
+    endText.setString("Voce escapou da mansao!\nPressione ENTER para voltar ao Menu.");
+    endText.setPosition(400.f - endText.getGlobalBounds().width / 2.f, 260.f);
     window.draw(endText);
 }
 
 void Game::renderGameOver() {
+    window.clear(sf::Color(40, 0, 0));
     endText.setFillColor(sf::Color::Red);
-    endText.setString("Voce foi consumido pelas sombras...\nPressione ENTER para sair.");
+    endText.setString("Voce foi consumido pelas sombras...\nPressione ENTER para tentar novamente.");
+    endText.setPosition(400.f - endText.getGlobalBounds().width / 2.f, 260.f);
     window.draw(endText);
 }
