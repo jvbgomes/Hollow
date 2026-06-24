@@ -29,4 +29,5 @@ public:
     virtual void takeDamage(int amount = 1);
     bool isAlive() const;
     sf::FloatRect getBounds() const;
+    sf::FloatRect getHitbox() const;
 };
