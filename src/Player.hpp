@@ -20,6 +20,8 @@ public:
     bool         hasKey()          const;
     bool         isReadyToThrow();
     bool         isAttacking()    const;
+    bool         isMoving()       const;
+    bool         isSprinting()    const;
 
     void startAttack();
     void addPage();
@@ -54,6 +56,10 @@ private:
     AttackState m_attackState;
     float       m_attackTimer;
     bool        m_readyToThrow;
+
+    float m_hitTimer   = 0.f;
+    float m_blinkTimer = 0.f;
+    bool  m_visible    = true;
 
     void handleInput();
     void updateAnim(float dt);
