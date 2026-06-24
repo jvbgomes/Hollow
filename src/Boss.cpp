@@ -2,7 +2,7 @@
 #include "Map.hpp"
 #include <cmath>
 
-Boss::Boss(float x, float y) : Enemy(x, y, 80.f, 999, 9999.f), baseSpeed(80.f), speedTimer(0.f) {
+Boss::Boss(float x, float y) : Enemy(x, y, 50.f, 999, 9999.f), baseSpeed(50.f), speedTimer(0.f) {
     loadTextures("assets/sprites/enemies/boss/", "boss");
     float scale = 40.f / 76.f;
     sprite.setScale(scale, scale);
