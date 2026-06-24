@@ -5,7 +5,7 @@
 const float Player::FRAME_DUR = 0.125f;
 
 Player::Player(float x, float y) : Entity(x, y),
-    m_speed(150.f), m_stamina(100.f), m_maxStamina(100.f), m_sprinting(false),
+    m_speed(85.f), m_stamina(100.f), m_maxStamina(100.f), m_sprinting(false),
     m_health(3), m_pages(0), m_lanterns(3), m_hasKey(false),
     m_faceDir(FaceDir::Down), m_animFrame(1), m_animTimer(0.f), m_moving(false),
     m_lastDir(0.f, 1.f),
@@ -37,6 +37,9 @@ bool Player::isReadyToThrow() {
 bool Player::isAttacking() const {
     return m_attackState != AttackState::None;
 }
+
+bool Player::isMoving() const   { return m_moving; }
+bool Player::isSprinting() const { return m_sprinting; }
 
 void Player::updateAttack(float dt) {
     if (m_attackState == AttackState::None) return;
@@ -110,7 +113,7 @@ void Player::applyFrame() {
 void Player::update(float dt, const Map& map, sf::Vector2f) {
     handleInput();
 
-    if (m_sprinting && m_stamina > 0.f) {
+    if (m_sprinting && m_moving && m_stamina > 0.f) {
         m_stamina -= 30.f * dt;
         if (m_stamina < 0.f) m_stamina = 0.f;
     } else if (!m_sprinting && m_stamina < m_maxStamina) {
@@ -134,13 +137,31 @@ void Player::update(float dt, const Map& map, sf::Vector2f) {
 
     updateAttack(dt);
     updateAnim(dt);
+
+    if (m_hitTimer > 0.f) {
+        m_hitTimer   -= dt;
+        m_blinkTimer -= dt;
+        if (m_blinkTimer <= 0.f) {
+            m_visible    = !m_visible;
+            m_blinkTimer = 0.08f;
+        }
+        if (m_hitTimer <= 0.f) {
+            m_visible    = true;
+            m_hitTimer   = 0.f;
+        }
+    }
 }
 
 void Player::draw(sf::RenderTarget& target) {
-    target.draw(sprite);
+    if (m_visible) target.draw(sprite);
 }
 
-void Player::takeDamage()  { m_health--; }
+void Player::takeDamage() {
+    m_health--;
+    m_hitTimer   = 1.0f;
+    m_blinkTimer = 0.f;
+    m_visible    = false;
+}
 
 int          Player::getHealth()       const { return m_health; }
 int          Player::getDiaryPages()   const { return m_pages; }
