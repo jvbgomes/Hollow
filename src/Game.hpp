@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <string>
 #include "Player.hpp"
 #include "Map.hpp"
 #include "NPC.hpp"
@@ -11,6 +12,9 @@
 #include "Enemy.hpp"
 #include "Projectile.hpp"
 #include "HUD.hpp"
+#include "PageReader.hpp"
+#include "AudioManager.hpp"
+#include "HitEffect.hpp"
 
 enum class GameState {
     Menu,
@@ -30,11 +34,18 @@ private:
     ItemList items;
     DialogueBox dialogueBox;
     EventQueue eventQueue;
-    HUD hud;
+    HUD          hud;
+    PageReader   pageReader;
+    AudioManager audio;
 
-    std::vector<Enemy*> enemies;
-    std::vector<NPC*> npcs;
+    bool  m_dialogueWasActive  = false;
+    float m_bossGrowlCooldown  = 0.f;
+    bool  m_bossWasNearby      = false;
+
+    std::vector<Enemy*>     enemies;
+    std::vector<NPC*>       npcs;
     std::vector<Projectile> projectiles;
+    std::vector<HitEffect>  hitEffects;
 
     struct DustParticle {
         sf::Vector2f position;
@@ -58,6 +69,18 @@ private:
     sf::Text titleText;
     sf::Text subtitleText;
     sf::Text endText;
+    sf::Text itemPromptText;
+
+    bool         m_itemNearby     = false;
+    sf::Vector2f m_itemPromptPos  = {};
+    std::string  m_itemPromptLabel;
+
+    bool         m_npcNearby    = false;
+    sf::Vector2f m_npcPromptPos = {};
+
+    MusicTrack m_pendingTrack = MusicTrack::None;
+    float      m_trackTimer   = 0.f;
+    static constexpr float TRACK_HOLD = 1.5f;
 
     int totalPages;
     sf::Vector2f exitPosition;
@@ -70,6 +93,8 @@ private:
     bool keyEPressed;
     bool keyQPressed;
     bool keyEnterPressed;
+    bool keyUpPressed;
+    bool keyDownPressed;
 
     enum class MenuState { Main, CharacterSelect };
     MenuState currentMenuState;
