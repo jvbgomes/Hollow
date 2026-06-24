@@ -12,22 +12,24 @@ Game::Game()
       exitPosition(700.f, 500.f),
       damageCooldown(1.5f),
       damageTimer(1.5f),
+      flickerTimer(0.f),
+      gameTimer(0.f),
       keyEPressed(false),
       keyQPressed(false),
       keyEnterPressed(false),
       currentMenuState(MenuState::Main),
       mainMenuOption(0),
       characterOption(0),
-      selectedSkin(0),
-      flickerTimer(0.f)
+      selectedSkin(0)
 {
     window.create(sf::VideoMode(800, 600), "Hollow");
     window.setFramerateLimit(60);
 
-    map.load("assets/test.csv", "assets/tileset_test.png");
+    map.load("assets/maps/vestibulo.tmx");
 
     dialogueBox.loadFont("assets/Arial.ttf");
     eventQueue.loadFont("assets/Arial.ttf");
+    hud.loadFont("assets/Arial.ttf");
 
     sf::Image img;
     img.create(32, 32, sf::Color(150, 150, 150));
@@ -49,8 +51,6 @@ Game::Game()
     endText.setCharacterSize(26);
     endText.setPosition(40.f, 240.f);
 
-    hud.loadFont("assets/Arial.ttf");
-
     for (int i = 0; i < 40; ++i) {
         DustParticle p;
         p.position = sf::Vector2f(std::rand() % 800, std::rand() % 600);
@@ -69,38 +69,47 @@ Game::~Game() {
 }
 
 void Game::setupLevel() {
-    enemies.push_back(new Shadow(400.f, 300.f));
-    enemies.push_back(new Shadow(430.f, 310.f));
-    enemies.push_back(new Spectre(600.f, 200.f));
-    enemies.push_back(new Boss(1500.f, 1500.f));
+    // Sem inimigos no vestíbulo — área inicial do jogo
 
-    NPC* eleanor = new NPC("Eleanor", 200.f, 150.f, placeholderTexture, sf::IntRect(0, 0, 32, 32));
+    npcTexEleanor.loadFromFile("assets/sprites/npcs/eleanor/eleanor.png");
+    npcTexThomas .loadFromFile("assets/sprites/npcs/thomas/thomas.png");
+    npcTexCrianca.loadFromFile("assets/sprites/npcs/crianca/crianca.png");
+    sf::IntRect npcRect(16, 0, 16, 24);
+
+    NPC* eleanor = new NPC("Eleanor", 250.f, 80.f, npcTexEleanor, npcRect);
     eleanor->addDialogueOption(0, {
         "As paginas do diario...",
         "Procure nos cantos mais escuros da mansao."
     });
     npcs.push_back(eleanor);
 
-    NPC* thomas = new NPC("Thomas", 350.f, 450.f, placeholderTexture, sf::IntRect(0, 0, 32, 32));
+    NPC* thomas = new NPC("Thomas", 70.f, 200.f, npcTexThomas, npcRect);
     thomas->addDialogueOption(0, {
         "A chave esta no porao...",
         "Atras do espelho quebrado. Cuidado com o que la habita."
     });
     npcs.push_back(thomas);
 
-    NPC* crianca = new NPC("A Crianca", 500.f, 350.f, placeholderTexture, sf::IntRect(0, 0, 32, 32));
+    NPC* crianca = new NPC("A Crianca", 260.f, 195.f, npcTexCrianca, npcRect);
     crianca->addDialogueOption(0, {
         "Ela nao dorme...",
         "Quanto mais voce corre, mais rapido ela fica."
     });
     npcs.push_back(crianca);
 
-    items.addItem(ItemType::Page, {300.f, 200.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
-    items.addItem(ItemType::Page, {500.f, 400.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
-    items.addItem(ItemType::Page, {150.f, 450.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
-    items.addItem(ItemType::Lamp, {250.f, 300.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
-    items.addItem(ItemType::Lamp, {450.f, 150.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
-    items.addItem(ItemType::Key,  {600.f, 500.f}, placeholderTexture, sf::IntRect(0, 0, 32, 32));
+    pageItemTex.loadFromFile("assets/sprites/items_page.png");
+    lampItemTex.loadFromFile("assets/sprites/items_lamp.png");
+    keyItemTex.loadFromFile("assets/tilesets/PropsV2.png");
+
+    sf::IntRect fullRect(0, 0, 32, 32);
+    sf::IntRect keyRect (0, 16, 16, 16);
+
+    items.addItem(ItemType::Page, { 55.f, 120.f}, pageItemTex, fullRect);
+    items.addItem(ItemType::Page, {270.f, 150.f}, pageItemTex, fullRect);
+    items.addItem(ItemType::Page, {140.f, 200.f}, pageItemTex, fullRect);
+    items.addItem(ItemType::Lamp, {150.f,  70.f}, lampItemTex, fullRect);
+    items.addItem(ItemType::Lamp, {220.f,  70.f}, lampItemTex, fullRect);
+    items.addItem(ItemType::Key,  {240.f, 200.f}, keyItemTex,  keyRect);
 }
 
 void Game::resetGame() {
@@ -109,6 +118,7 @@ void Game::resetGame() {
     enemies.clear();
     npcs.clear();
     projectiles.clear();
+    items = ItemList{};
     player = Player(100.f, 100.f);
     damageTimer = 1.5f;
     gameTimer = 0.f;
@@ -158,28 +168,25 @@ void Game::update(float dt) {
             }
 
             if (currentMenuState == MenuState::Main) {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
                     mainMenuOption = 0;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
                     mainMenuOption = 1;
-                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
                     if (mainMenuOption == 0) {
+                        if (selectedSkin == 1)
+                            player.load("assets/sprites/player/player_f.png");
                         state = GameState::Playing;
                     } else {
                         currentMenuState = MenuState::CharacterSelect;
                     }
                     keyEnterPressed = true;
                 }
-            } 
-            else if (currentMenuState == MenuState::CharacterSelect) {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            } else if (currentMenuState == MenuState::CharacterSelect) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
                     characterOption = 0;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
                     characterOption = 1;
-                }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
                     selectedSkin = characterOption;
                     currentMenuState = MenuState::Main;
@@ -220,7 +227,7 @@ void Game::updatePlaying(float dt) {
     eventQueue.update(dt);
 
     damageTimer += dt;
-    gameTimer += dt;
+    gameTimer   += dt;
 
     hud.update(
         player.getHealth(), 3,
@@ -230,13 +237,17 @@ void Game::updatePlaying(float dt) {
     );
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q) && !keyQPressed) {
+        player.startAttack();
+        keyQPressed = true;
+    }
+    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) keyQPressed = false;
+
+    if (player.isReadyToThrow()) {
         if (player.useLantern()) {
             projectiles.emplace_back(player.getPosition(), player.getDirection());
             eventQueue.enqueue("Lamparina arremessada  [" + std::to_string(player.getSaltLanterns()) + " restantes]");
         }
-        keyQPressed = true;
     }
-    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) keyQPressed = false;
 
     checkNPCInteraction();
     checkEnemyPlayerCollision();
@@ -365,18 +376,15 @@ void Game::renderMenu() {
     window.draw(titleText);
 
     if (currentMenuState == MenuState::Main) {
-        if (mainMenuOption == 0) {
+        if (mainMenuOption == 0)
             subtitleText.setString("> ADENTRAR A MANSAO <\n  ESCOLHER INVESTIGADOR  ");
-        } else {
+        else
             subtitleText.setString("  ADENTRAR A MANSAO  \n> ESCOLHER INVESTIGADOR <");
-        }
-    } 
-    else if (currentMenuState == MenuState::CharacterSelect) {
-        if (characterOption == 0) {
+    } else {
+        if (characterOption == 0)
             subtitleText.setString("> INVESTIGADOR (JOAO) <\n  INVESTIGADORA (RADLA)  ");
-        } else {
+        else
             subtitleText.setString("  INVESTIGADOR (JOAO)  \n> INVESTIGADORA (RADLA) <");
-        }
     }
 
     subtitleText.setPosition(400.f - subtitleText.getGlobalBounds().width / 2.f, 320.f);
@@ -398,8 +406,8 @@ void Game::renderPlaying() {
     map.draw(window);
     items.draw(window);
 
-    for (NPC* n : npcs)     n->draw(window);
-    for (Enemy* e : enemies) e->draw(window);
+    for (NPC* n : npcs)      n->draw(window);
+    for (Enemy* e : enemies)  e->draw(window);
     for (Projectile& p : projectiles) p.draw(window);
 
     player.draw(window);

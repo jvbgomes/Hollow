@@ -18,7 +18,7 @@ public:
     Projectile(sf::Vector2f startPos, sf::Vector2f direction);
 
     void update(float deltaTime, const Map& map);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderTarget& target);
 
     sf::FloatRect getBounds() const;
     bool isActive() const;

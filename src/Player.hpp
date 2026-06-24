@@ -1,37 +1,62 @@
 #pragma once
-
 #include "Entity.hpp"
 
 class Player : public Entity {
-private:
-    float speed;
-    float stamina;
-    float maxStamina;
-    bool isSprinting;
-    int health;
-    int diaryPages;
-    int saltLanterns;
-    bool hasKeyItem;
-    sf::Vector2f lastDirection;
-
 public:
     Player(float x, float y);
 
-    void update(float deltaTime, const Map& map, sf::Vector2f playerPosition) override;
-    void draw(sf::RenderWindow& window) override;
+    void load(const std::string& spritePath);
 
-    void handleInput();
+    void update(float dt, const Map& map, sf::Vector2f playerPos) override;
+    void draw(sf::RenderTarget& target) override;
+
     void takeDamage();
 
-    int getHealth() const;
-    int getDiaryPages() const;
-    int getSaltLanterns() const;
-    float getStamina() const;
-    sf::Vector2f getDirection() const;
-    bool hasKey() const;
+    int          getHealth()       const;
+    int          getDiaryPages()   const;
+    int          getSaltLanterns() const;
+    float        getStamina()      const;
+    sf::Vector2f getDirection()    const;
+    bool         hasKey()          const;
+    bool         isReadyToThrow();
+    bool         isAttacking()    const;
 
+    void startAttack();
     void addPage();
     void addLantern();
     void collectKey();
     bool useLantern();
+
+private:
+    static const int   FRAME_W   = 16;
+    static const int   FRAME_H   = 24;
+    static const float FRAME_DUR;
+
+    enum class FaceDir { Down = 0, Right = 1, Up = 2, Left = 3 };
+
+    float   m_speed;
+    float   m_stamina;
+    float   m_maxStamina;
+    bool    m_sprinting;
+    int     m_health;
+    int     m_pages;
+    int     m_lanterns;
+    bool    m_hasKey;
+
+    FaceDir m_faceDir;
+    int     m_animFrame;
+    float   m_animTimer;
+    bool    m_moving;
+
+    sf::Vector2f m_lastDir;
+
+    enum class AttackState { None, Preparing, Throwing };
+    AttackState m_attackState;
+    float       m_attackTimer;
+    bool        m_readyToThrow;
+
+    void handleInput();
+    void updateAnim(float dt);
+    void applyFrame();
+    void updateAttack(float dt);
 };

@@ -13,8 +13,8 @@ void NPC::update(float deltaTime, const Map& map, sf::Vector2f playerPosition) {
     sprite.setPosition(position);
 }
 
-void NPC::draw(sf::RenderWindow& window) {
-    window.draw(sprite);
+void NPC::draw(sf::RenderTarget& target) {
+    target.draw(sprite);
 }
 
 void NPC::addDialogueOption(int optionIndex, const std::vector<std::string>& sentences) {

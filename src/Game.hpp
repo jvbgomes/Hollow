@@ -45,6 +45,15 @@ private:
     std::vector<DustParticle> dustParticles;
 
     sf::Texture placeholderTexture;
+
+    sf::Texture npcTexEleanor;
+    sf::Texture npcTexThomas;
+    sf::Texture npcTexCrianca;
+
+    sf::Texture pageItemTex;
+    sf::Texture lampItemTex;
+    sf::Texture keyItemTex;
+
     sf::Font font;
     sf::Text titleText;
     sf::Text subtitleText;
@@ -56,16 +65,24 @@ private:
     float damageCooldown;
     float damageTimer;
     float flickerTimer;
+    float gameTimer;
 
     bool keyEPressed;
     bool keyQPressed;
     bool keyEnterPressed;
+
+    enum class MenuState { Main, CharacterSelect };
+    MenuState currentMenuState;
+    int mainMenuOption;
+    int characterOption;
+    int selectedSkin;
 
     void handleEvents();
     void update(float deltaTime);
     void render();
 
     void setupLevel();
+    void resetGame();
 
     void updatePlaying(float deltaTime);
     void checkProjectileHits();
@@ -79,15 +96,6 @@ private:
     void renderVictory();
     void renderGameOver();
 
-    enum class MenuState { Main, CharacterSelect };
-
-    MenuState currentMenuState;
-    int mainMenuOption;
-    int characterOption;
-    int selectedSkin;
-    float gameTimer = 0.f;
-
-    void resetGame();
 public:
     Game();
     ~Game();

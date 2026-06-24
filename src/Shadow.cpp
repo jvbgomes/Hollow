@@ -2,36 +2,34 @@
 #include "Map.hpp"
 #include <cmath>
 
-Shadow::Shadow(float x, float y) 
-    : Enemy(x, y, 60.f, 1, 150.f) {
-    sf::Image img;
-    img.create(24, 24, sf::Color(80, 0, 120));
-    texture.loadFromImage(img);
-    sprite.setTexture(texture);
-    sprite.setOrigin(12.f, 12.f);
+Shadow::Shadow(float x, float y) : Enemy(x, y, 60.f, 1, 150.f) {
+    loadTextures("assets/sprites/enemies/shadow/", "shadow");
+    float scale = 32.f / 76.f;
+    sprite.setScale(scale, scale);
+    sprite.setOrigin(38.f, 38.f);
     sprite.setPosition(position);
 }
 
-void Shadow::update(float deltaTime, const Map& map, sf::Vector2f playerPosition) {
-    float dx = playerPosition.x - position.x;
-    float dy = playerPosition.y - position.y;
-    float distance = std::sqrt(dx * dx + dy * dy);
-  
-    if (distance <= detectionRadius && distance > 0.f) {
-        float nx = dx / distance;
-        float ny = dy / distance;
-  
-        position.x += nx * speed * deltaTime;
+void Shadow::update(float dt, const Map& map, sf::Vector2f playerPos) {
+    float dx = playerPos.x - position.x;
+    float dy = playerPos.y - position.y;
+    float dist = std::sqrt(dx * dx + dy * dy);
+
+    if (dist <= detectionRadius && dist > 0.f) {
+        sf::Vector2f dir = { dx / dist, dy / dist };
+        applyDirection(dir);
+
+        position.x += dir.x * speed * dt;
         sprite.setPosition(position);
         if (map.isCollidingWith(sprite.getGlobalBounds())) {
-            position.x -= nx * speed * deltaTime;
+            position.x -= dir.x * speed * dt;
             sprite.setPosition(position);
         }
 
-        position.y += ny * speed * deltaTime;
+        position.y += dir.y * speed * dt;
         sprite.setPosition(position);
         if (map.isCollidingWith(sprite.getGlobalBounds())) {
-            position.y -= ny * speed * deltaTime;
+            position.y -= dir.y * speed * dt;
             sprite.setPosition(position);
         }
     }

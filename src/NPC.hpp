@@ -15,7 +15,7 @@ public:
     ~NPC() override = default;
 
     void update(float deltaTime, const Map& map, sf::Vector2f playerPosition) override;
-    void draw(sf::RenderWindow& window) override;
+    void draw(sf::RenderTarget& target) override;
 
     void addDialogueOption(int optionIndex, const std::vector<std::string>& sentences);
     std::string getNextSentence(int optionIndex);
