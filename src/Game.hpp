@@ -116,6 +116,7 @@ private:
     void checkNPCInteraction();
     void checkVictoryCondition();
 
+    void drawVignette(sf::Color tint);
     void renderMenu();
     void renderPlaying();
     void renderVictory();
