@@ -118,7 +118,7 @@ void Game::resetGame() {
     enemies.clear();
     npcs.clear();
     projectiles.clear();
-    items = ItemList{};
+    items.clear();
     player = Player(100.f, 100.f);
     damageTimer = 1.5f;
     gameTimer = 0.f;
