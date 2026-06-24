@@ -3,11 +3,10 @@
 EventQueue::EventQueue() 
     : head(nullptr), tail(nullptr), displayTimer(0.0f), displayDuration(2.5f), hasActiveMessage(false) {
     
-    // Configuração visual do texto de notificação (no topo da tela e centralizado)
     textDisplay.setCharacterSize(16);
     textDisplay.setFillColor(sf::Color::Yellow);
     textDisplay.setStyle(sf::Text::Bold);
-    textDisplay.setPosition(300.f, 20.f); 
+    textDisplay.setPosition(0.f, 50.f); 
 }
 
 EventQueue::~EventQueue() {
@@ -55,19 +54,21 @@ void EventQueue::loadFont(const std::string& fontPath) {
 }
 
 void EventQueue::update(float deltaTime) {
-    // Se não tem mensagem ativa na tela, mas a fila tem notificações guardadas, puxa a próxima
     if (!hasActiveMessage && !isEmpty()) {
         textDisplay.setString(head->message);
+        
+        float textWidth = textDisplay.getGlobalBounds().width;
+        textDisplay.setPosition(760.f - textWidth, 50.f);
+
         displayTimer = 0.0f;
         hasActiveMessage = true;
     }
 
-    // Se tem uma mensagem aparecendo, conta o tempo dela
     if (hasActiveMessage) {
         displayTimer += deltaTime;
         if (displayTimer >= displayDuration) {
-            dequeue(); // Tira essa mensagem da fila
-            hasActiveMessage = false; // Abre espaço para a próxima no próximo frame
+            dequeue(); 
+            hasActiveMessage = false; 
         }
     }
 }

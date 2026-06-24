@@ -318,7 +318,8 @@ void Game::checkItemCollection() {
                 break;
             case ItemType::Key:
                 player.collectKey();
-                eventQueue.enqueue("Chave da mansao encontrada!  Encontre a saida.");
+                eventQueue.enqueue("Chave da mansao encontrada!");
+                eventQueue.enqueue("Encontre a saida.");
                 break;
         }
     }
