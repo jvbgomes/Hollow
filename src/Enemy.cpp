@@ -42,3 +42,11 @@ void Enemy::takeDamage(int amount) {
 bool Enemy::isAlive() const { return alive; }
 
 sf::FloatRect Enemy::getBounds() const { return sprite.getGlobalBounds(); }
+
+sf::FloatRect Enemy::getHitbox() const {
+    sf::FloatRect b = sprite.getGlobalBounds();
+    float shrinkX = b.width  * 0.35f;
+    float shrinkY = b.height * 0.35f;
+    return {b.left + shrinkX, b.top + shrinkY,
+            b.width - shrinkX * 2.f, b.height - shrinkY * 2.f};
+}
