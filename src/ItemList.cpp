@@ -8,8 +8,10 @@ ItemList::~ItemList() {
 }
 
 // Inserção de novos elementos no início da lista encadeada (O(1))
-void ItemList::addItem(ItemType type, sf::Vector2f position, const sf::Texture& texture, sf::IntRect textureRect, float lifetime) {
-    Item* newItem = new Item(type, position, texture, textureRect, lifetime);
+void ItemList::addItem(ItemType type, sf::Vector2f position, const sf::Texture& texture,
+                        sf::IntRect textureRect, float lifetime,
+                        const std::string& loreTitle, const std::string& loreBody) {
+    Item* newItem = new Item(type, position, texture, textureRect, lifetime, loreTitle, loreBody);
     newItem->setNext(head);
     head = newItem;
 }
@@ -49,6 +51,21 @@ void ItemList::update(float deltaTime) {
     }
 }
 
+bool ItemList::getNearbyItemInfo(const sf::FloatRect& playerBounds,
+                                  sf::Vector2f& outPos, ItemType& outType) const {
+    Item* current = head;
+    while (current != nullptr) {
+        if (current->getBounds().intersects(playerBounds)) {
+            sf::FloatRect b = current->getBounds();
+            outPos  = {b.left + b.width / 2.f, b.top + b.height / 2.f};
+            outType = current->getType();
+            return true;
+        }
+        current = current->getNext();
+    }
+    return false;
+}
+
 // Varredura sequencial para renderização de todos os elementos ativos
 void ItemList::draw(sf::RenderWindow& window) {
     Item* current = head;
@@ -58,13 +75,24 @@ void ItemList::draw(sf::RenderWindow& window) {
     }
 }
 
-// Varredura de colisões (Interseção de caixas) para ativação da Autocoleta
-bool ItemList::checkAutoCollect(const sf::FloatRect& playerBounds, ItemType& outCollectedType) {
+bool ItemList::hasNearbyItem(const sf::FloatRect& playerBounds) const {
     Item* current = head;
-    
+    while (current != nullptr) {
+        if (current->getBounds().intersects(playerBounds)) return true;
+        current = current->getNext();
+    }
+    return false;
+}
+
+// Varredura de colisões (Interseção de caixas) para ativação da Autocoleta
+bool ItemList::checkAutoCollect(const sf::FloatRect& playerBounds, ItemType& outType,
+                                 std::string& outLoreTitle, std::string& outLoreBody) {
+    Item* current = head;
     while (current != nullptr) {
         if (current->getBounds().intersects(playerBounds)) {
-            outCollectedType = current->getType();
+            outType      = current->getType();
+            outLoreTitle = current->getLoreTitle();
+            outLoreBody  = current->getLoreBody();
             removeItem(current);
             return true;
         }
