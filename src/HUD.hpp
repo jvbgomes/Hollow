@@ -1,30 +1,41 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include <string>
 
 class HUD {
-private:
-    sf::Font font;
-    
-    // Textos do HUD
-    sf::Text pagesText;
-    sf::Text lampsText;
-    sf::Text timerText;
-
-    // Elementos visuais para as barras (Vida e Stamina)
-    sf::RectangleShape healthBarBack;
-    sf::RectangleShape healthBarFront;
-    sf::RectangleShape staminaBarBack;
-    sf::RectangleShape staminaBarFront;
-
 public:
     HUD();
-    void loadFont(const std::string& fontPath);
-    
-    // Atualiza os dados que vêm  do loop do jogo e do Player
-    void update(int currentHealth, int maxHealth, float currentStamina, float maxStamina, 
-                int collectedPages, int totalPages, int remainingLamps, float elapsedTime);
-                
+    void update(int hp, int maxHp, float stamina, float maxStamina,
+                int pages, int totalPages, int lamps, float elapsed);
     void draw(sf::RenderWindow& window);
+
+private:
+    // Corações pixel-art
+    sf::VertexArray m_heartVA;
+    int m_lastHp = -1;
+
+    // Barra de stamina fina
+    sf::RectangleShape m_staminaBg;
+    sf::RectangleShape m_staminaFill;
+    float m_staminaAlpha = 0.f;
+
+    // Textos pixel-art (VertexArray)
+    sf::VertexArray m_timerVA;
+    sf::VertexArray m_pagesVA;
+    sf::VertexArray m_lampsVA;
+
+    // Sprites dos itens
+    sf::Texture m_pageTex;
+    sf::Texture m_lampTex;
+    sf::Sprite  m_pageSprite;
+    sf::Sprite  m_lampSprite;
+
+    // Cache para só reconstruir quando mudar
+    std::string m_lastTimer;
+    std::string m_lastPages;
+    std::string m_lastLamps;
+
+    void rebuildHearts(int hp);
+    static void drawPixelText(sf::VertexArray& va, const std::string& str,
+                              float x, float y, float px, sf::Color color);
 };
