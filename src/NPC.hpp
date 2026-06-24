@@ -3,24 +3,39 @@
 #include <vector>
 #include <string>
 #include "Entity.hpp"
+#include "DialogueLine.hpp"
 
 class NPC : public Entity {
-private:
-    std::string name;
-    std::vector<std::vector<std::string>> dialogueQueues;
-    float interactionRadius;
-
 public:
     NPC(std::string npcName, float x, float y, const sf::Texture& npcTexture, sf::IntRect textureRect);
     ~NPC() override = default;
 
-    void update(float deltaTime, const Map& map, sf::Vector2f playerPosition) override;
+    void update(float dt, const Map& map, sf::Vector2f playerPosition) override;
     void draw(sf::RenderTarget& target) override;
 
-    void addDialogueOption(int optionIndex, const std::vector<std::string>& sentences);
-    std::string getNextSentence(int optionIndex);
-    bool hasDialogue(int optionIndex) const;
+    void addOption(const std::string& label, const DialogueSequence& lines);
 
-    bool isPlayerNearby(sf::Vector2f playerPosition) const;
-    std::string getName() const;
+    const DialogueSequence& getOptionLines(int idx) const;
+    void markSeen(int idx);
+    bool isOptionSeen(int idx) const;
+
+    std::vector<DialogueMenuOption> getAvailableOptions() const;
+
+    bool               isPlayerNearby(sf::Vector2f playerPosition) const;
+    std::string        getName()         const;
+    const sf::Texture* getTexture()      const;
+    sf::IntRect        getPortraitRect() const;
+
+private:
+    struct Option {
+        std::string      label;
+        DialogueSequence lines;
+        bool             seen = false;
+    };
+
+    std::string         name;
+    std::vector<Option> m_options;
+    float               interactionRadius;
+    const sf::Texture*  m_texPtr      = nullptr;
+    sf::IntRect         m_portraitRect;
 };
