@@ -2,7 +2,7 @@
 #include "Map.hpp"
 #include <cmath>
 
-Shadow::Shadow(float x, float y) : Enemy(x, y, 60.f, 1, 150.f) {
+Shadow::Shadow(float x, float y) : Enemy(x, y, 35.f, 1, 150.f) {
     loadTextures("assets/sprites/enemies/shadow/", "shadow");
     float scale = 32.f / 76.f;
     sprite.setScale(scale, scale);
