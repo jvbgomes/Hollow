@@ -1,3 +1,4 @@
 build/
+.cache/
 CLAUDE.md
 compile_commands.json
