@@ -19,6 +19,7 @@
 enum class GameState {
     Menu,
     Playing,
+    Paused,
     Victory,
     GameOver
 };
@@ -96,6 +97,10 @@ private:
     bool keyUpPressed;
     bool keyDownPressed;
 
+    enum class PauseOption { Continue, Restart, Quit };
+    PauseOption pauseOption = PauseOption::Continue;
+    bool pauseConfirmRestart = false; 
+    bool keyEscPressed     = false;
     enum class MenuState { Main, CharacterSelect };
     MenuState currentMenuState;
     int mainMenuOption;
@@ -119,6 +124,8 @@ private:
     void drawVignette(sf::Color tint);
     void renderMenu();
     void renderPlaying();
+    void updatePaused(float dt);
+    void renderPaused();
     void renderVictory();
     void renderGameOver();
 

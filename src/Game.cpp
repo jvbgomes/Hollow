@@ -245,6 +245,10 @@ void Game::resetGame() {
     damageTimer = 1.5f;
     gameTimer = 0.f;
     hitEffects.clear();
+
+    dialogueBox.close(); 
+    pageReader.close(); 
+
     currentMenuState = MenuState::Main;
     mainMenuOption = 0;
     characterOption = 0;
@@ -272,6 +276,7 @@ void Game::handleEvents() {
             if (event.key.code == sf::Keyboard::E)     keyEPressed = false;
             if (event.key.code == sf::Keyboard::Q)     keyQPressed = false;
             if (event.key.code == sf::Keyboard::Enter) keyEnterPressed = false;
+            if (event.key.code == sf::Keyboard::Escape) keyEscPressed = false;
         }
     }
 }
@@ -338,6 +343,10 @@ void Game::update(float dt) {
             updatePlaying(dt);
             break;
 
+        case GameState::Paused:
+        updatePaused(dt);
+        break;
+        
         case GameState::Victory:
         case GameState::GameOver:
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
@@ -351,6 +360,17 @@ void Game::update(float dt) {
 }
 
 void Game::updatePlaying(float dt) {
+
+    //esc para pausar (entrar em um sub-menu)
+     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && !keyEscPressed) {
+        state = GameState::Paused;
+        pauseOption = PauseOption::Continue;
+        pauseConfirmRestart = false;
+        keyEscPressed = true;
+        return;
+    }
+    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) keyEscPressed = false;
+
     // E fecha a página (com prioridade sobre diálogo)
     if (pageReader.isOpen()) {
         audio.updateFootstep(false, false, dt);
@@ -483,6 +503,78 @@ void Game::updatePlaying(float dt) {
         std::remove_if(hitEffects.begin(), hitEffects.end(),
                        [](const HitEffect& fx){ return fx.isFinished(); }),
         hitEffects.end());
+}
+
+void Game::updatePaused(float dt) {
+    // navegação só roda se não estiver no sub-menu de confirmação
+    if (!pauseConfirmRestart) {
+        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            && !keyUpPressed) {
+            int idx = static_cast<int>(pauseOption);
+            idx = (idx - 1 < 0) ? 2 : idx - 1;
+            pauseOption = static_cast<PauseOption>(idx);
+            audio.playSfx(SfxId::CursorMove, 60.f);
+            keyUpPressed = true;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            keyUpPressed = false;
+
+        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            && !keyDownPressed) {
+            int idx = static_cast<int>(pauseOption);
+            idx = (idx + 1 > 2) ? 0 : idx + 1;
+            pauseOption = static_cast<PauseOption>(idx);
+            audio.playSfx(SfxId::CursorMove, 60.f);
+            keyDownPressed = true;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            keyDownPressed = false;
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && !keyEscPressed) {
+            state = GameState::Playing;
+            keyEscPressed = true;
+            return;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) keyEscPressed = false;
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+            switch (pauseOption) {
+                case PauseOption::Continue:
+                    state = GameState::Playing;
+                    break;
+                case PauseOption::Restart:
+                    pauseConfirmRestart = true;   // abre a confirmação
+                    break;
+                case PauseOption::Quit:
+                    resetGame();  
+                    state = GameState::Menu;
+                    currentMenuState = MenuState::Main;
+                    mainMenuOption = 0;
+                    audio.playMusic(MusicTrack::Menu);
+                    break;
+            }
+            keyEnterPressed = true;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) keyEnterPressed = false;
+
+    } else {
+
+        // ENTER confirma e reinicia, ESC cancela e volta ao menu de pausa
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+            resetGame();
+            state = GameState::Playing;
+            audio.playMusic(MusicTrack::Explore);
+            pauseConfirmRestart = false;
+            keyEnterPressed = true;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) keyEnterPressed = false;
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && !keyEscPressed) {
+            pauseConfirmRestart = false; // cancela, volta pro menu de pausa normal
+            keyEscPressed = true;
+        }
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) keyEscPressed = false;
+    }
 }
 
 void Game::checkEnemyPlayerCollision() {
@@ -670,6 +762,10 @@ void Game::render() {
     switch (state) {
         case GameState::Menu:     renderMenu();     break;
         case GameState::Playing:  renderPlaying();  break;
+        case GameState::Paused:
+            renderPlaying();
+            renderPaused();
+            break;
         case GameState::Victory:  renderVictory();  break;
         case GameState::GameOver: renderGameOver(); break;
     }
@@ -697,7 +793,7 @@ void Game::drawVignette(sf::Color tint) {
 
 
 void Game::renderMenu() {
-    
+
     for (const auto& p : dustParticles) {
         sf::CircleShape dot(1.5f);
         dot.setPosition(p.position);
@@ -706,21 +802,21 @@ void Game::renderMenu() {
     }
  
     if (currentMenuState == MenuState::Main) {
-        // --- Glow sutil atrás do título (dá peso sem precisar de shader) ---
+        
         sf::Text titleGlow = titleText;
         titleGlow.setFillColor(sf::Color(60, 70, 90, 60));
         titleGlow.move(0.f, 4.f);
         window.draw(titleGlow);
         window.draw(titleText);
  
-        // --- Linha decorativa fina abaixo do título ---
+        // linha embaixo do titulo
         float lineY = titleText.getPosition().y + titleText.getGlobalBounds().height + 18.f;
         sf::RectangleShape line(sf::Vector2f(180.f, 2.f));
         line.setPosition(400.f - 90.f, lineY);
         line.setFillColor(sf::Color(90, 90, 100, 150));
         window.draw(line);
  
-        // Pulsação suave do cursor (efeito "respirando")
+        
         float pulse = 0.6f + 0.4f * std::sin(flickerTimer * 3.f);
         sf::Uint8 selAlpha   = static_cast<sf::Uint8>(200 + 55 * pulse);
         sf::Color selColor (235, 235, 245, selAlpha);
@@ -750,7 +846,7 @@ void Game::renderMenu() {
         window.draw(optPlay);
         window.draw(optSelect);
  
-        // Dica de controles, discreta, perto do rodapé
+        // dica de controles
         sf::Text hint;
         hint.setFont(font);
         hint.setCharacterSize(13);
@@ -777,7 +873,7 @@ void Game::renderMenu() {
         screenLabel.setPosition(400.f - screenLabel.getGlobalBounds().width / 2.f, 120.f);
         window.draw(screenLabel);
  
-        // Linha decorativa abaixo do cabeçalho
+        // linha do cabeçalho
         sf::RectangleShape headerLine(sf::Vector2f(180.f, 2.f));
         headerLine.setPosition(400.f - 90.f, 155.f);
         headerLine.setFillColor(sf::Color(90, 90, 100, 150));
@@ -926,6 +1022,137 @@ void Game::renderPlaying() {
     hud.draw(window);
 
     pageReader.draw(window);
+}
+
+
+void Game::renderPaused() {
+    window.setView(window.getDefaultView());
+
+    sf::RectangleShape dim(sf::Vector2f(800.f, 600.f));
+    dim.setPosition(0.f, 0.f);
+    dim.setFillColor(sf::Color(0, 0, 0, 165));
+    window.draw(dim);
+
+    sf::Text pauseTitle;
+    pauseTitle.setFont(font);
+    pauseTitle.setCharacterSize(40);
+    pauseTitle.setFillColor(sf::Color(220, 220, 230));
+    pauseTitle.setStyle(sf::Text::Bold);
+    { std::string s = "PAUSADO";
+      pauseTitle.setString(sf::String::fromUtf8(s.begin(), s.end())); }
+    pauseTitle.setPosition(260.f - pauseTitle.getGlobalBounds().width / 2.f, 130.f);
+    window.draw(pauseTitle);
+
+    sf::RectangleShape line(sf::Vector2f(160.f, 2.f));
+    line.setPosition(260.f - 80.f, 185.f);
+    line.setFillColor(sf::Color(120, 120, 130, 200));
+    window.draw(line);
+
+    auto drawOption = [&](const std::string& label, PauseOption opt, float y) {
+        bool selected = (pauseOption == opt) && !pauseConfirmRestart;
+        sf::Text t;
+        t.setFont(font);
+        t.setCharacterSize(24);
+        t.setFillColor(selected ? sf::Color(255, 255, 255) : sf::Color(110, 110, 120));
+        std::string s = selected ? "> " + label + " <" : label;
+        t.setString(sf::String::fromUtf8(s.begin(), s.end()));
+        t.setPosition(260.f - t.getGlobalBounds().width / 2.f, y);
+        window.draw(t);
+    };
+
+    drawOption("CONTINUAR", PauseOption::Continue, 240.f);
+    drawOption("REINICIAR", PauseOption::Restart,  290.f);
+    drawOption("SAIR",      PauseOption::Quit,      340.f);
+
+    sf::Text hint;
+    hint.setFont(font);
+    hint.setCharacterSize(13);
+    hint.setFillColor(sf::Color(90, 90, 100));
+    hint.setString("W/S navega   ENTER confirma   ESC continua");
+    hint.setPosition(260.f - hint.getGlobalBounds().width / 2.f, 400.f);
+    window.draw(hint);
+
+    sf::RectangleShape statsPanel(sf::Vector2f(260.f, 230.f));
+    statsPanel.setPosition(500.f, 150.f);
+    statsPanel.setFillColor(sf::Color(255, 255, 255, 10));
+    statsPanel.setOutlineThickness(1.f);
+    statsPanel.setOutlineColor(sf::Color(255, 255, 255, 50));
+    window.draw(statsPanel);
+
+    sf::Text statsTitle;
+    statsTitle.setFont(font);
+    statsTitle.setCharacterSize(16);
+    statsTitle.setFillColor(sf::Color(170, 170, 180));
+    { std::string s = "PROGRESSO";
+      statsTitle.setString(sf::String::fromUtf8(s.begin(), s.end())); }
+    statsTitle.setPosition(520.f, 165.f);
+    window.draw(statsTitle);
+
+    int  minutes = static_cast<int>(gameTimer) / 60;
+    int  seconds = static_cast<int>(gameTimer) % 60;
+    char timeBuf[16];
+    std::snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", minutes, seconds);
+
+    int aliveEnemies = 0;
+    for (Enemy* e : enemies) if (e->isAlive()) ++aliveEnemies;
+
+    auto drawStatLine = [&](const std::string& label, const std::string& value, float y) {
+        sf::Text lt, vt;
+        lt.setFont(font); vt.setFont(font);
+        lt.setCharacterSize(15); vt.setCharacterSize(15);
+        lt.setFillColor(sf::Color(140, 140, 150));
+        vt.setFillColor(sf::Color(225, 225, 230));
+        std::string ls = label, vs = value;
+        lt.setString(sf::String::fromUtf8(ls.begin(), ls.end()));
+        vt.setString(sf::String::fromUtf8(vs.begin(), vs.end()));
+        lt.setPosition(520.f, y);
+        vt.setPosition(710.f - vt.getGlobalBounds().width, y);
+        window.draw(lt);
+        window.draw(vt);
+    };
+
+    drawStatLine("Tempo decorrido",   std::string(timeBuf),                                   205.f);
+    drawStatLine("Páginas do diário", std::to_string(player.getDiaryPages()) + "/" + std::to_string(totalPages), 235.f);
+    drawStatLine("Lamparinas de sal", std::to_string(player.getSaltLanterns()),                265.f);
+    drawStatLine("Vida",              std::to_string(player.getHealth()) + "/3",               295.f);
+    drawStatLine("Chave da mansão",   player.hasKey() ? "Sim" : "Não",                         325.f);
+    drawStatLine("Inimigos ativos",   std::to_string(aliveEnemies),                             355.f);
+
+    if (pauseConfirmRestart) {
+        sf::RectangleShape confirmBox(sf::Vector2f(440.f, 160.f));
+        confirmBox.setPosition(400.f - 220.f, 220.f);
+        confirmBox.setFillColor(sf::Color(20, 12, 12, 235));
+        confirmBox.setOutlineThickness(1.5f);
+        confirmBox.setOutlineColor(sf::Color(200, 90, 90, 200));
+        window.draw(confirmBox);
+
+        sf::Text warn;
+        warn.setFont(font);
+        warn.setCharacterSize(20);
+        warn.setFillColor(sf::Color(230, 130, 130));
+        { std::string s = "Reiniciar o jogo?";
+          warn.setString(sf::String::fromUtf8(s.begin(), s.end())); }
+        warn.setPosition(400.f - warn.getGlobalBounds().width / 2.f, 245.f);
+        window.draw(warn);
+
+        sf::Text warnSub;
+        warnSub.setFont(font);
+        warnSub.setCharacterSize(15);
+        warnSub.setFillColor(sf::Color(200, 180, 180));
+        { std::string s = "Todo o progresso atual sera perdido.";
+          warnSub.setString(sf::String::fromUtf8(s.begin(), s.end())); }
+        warnSub.setPosition(400.f - warnSub.getGlobalBounds().width / 2.f, 280.f);
+        window.draw(warnSub);
+
+        sf::Text warnHint;
+        warnHint.setFont(font);
+        warnHint.setCharacterSize(14);
+        warnHint.setFillColor(sf::Color(170, 150, 150));
+        { std::string s = "ENTER confirma   ESC cancela";
+          warnHint.setString(sf::String::fromUtf8(s.begin(), s.end())); }
+        warnHint.setPosition(400.f - warnHint.getGlobalBounds().width / 2.f, 335.f);
+        window.draw(warnHint);
+    }
 }
 
 void Game::renderVictory() {
