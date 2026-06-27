@@ -298,18 +298,33 @@ void Game::update(float dt) {
             }
 
             if (currentMenuState == MenuState::Main) {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-                    mainMenuOption = 0;
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-                    mainMenuOption = 1;
+               // mainMenuOption: 0 = Adentrar, 1 = Escolher Investigador, 2 = Sair
+                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+                    && !keyUpPressed) {
+                    mainMenuOption = (mainMenuOption == 0) ? 2 : mainMenuOption - 1;
+                    keyUpPressed = true;
+                }
+                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+                    keyUpPressed = false;
+
+                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                    && !keyDownPressed) {
+                    mainMenuOption = (mainMenuOption == 2) ? 0 : mainMenuOption + 1;
+                    keyDownPressed = true;
+                }
+                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                    keyDownPressed = false;
+
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
                     if (mainMenuOption == 0) {
                         if (selectedSkin == 1)
                             player.load("assets/sprites/player/player_f.png");
                         state = GameState::Playing;
                         audio.playMusic(MusicTrack::Explore);
-                    } else {
+                    } else if (mainMenuOption == 1) {
                         currentMenuState = MenuState::CharacterSelect;
+                    } else {
+                        window.close();   // Sair do jogo
                     }
                     keyEnterPressed = true;
                 }
@@ -808,51 +823,52 @@ void Game::renderMenu() {
         titleGlow.move(0.f, 4.f);
         window.draw(titleGlow);
         window.draw(titleText);
- 
-        // linha embaixo do titulo
+
         float lineY = titleText.getPosition().y + titleText.getGlobalBounds().height + 18.f;
         sf::RectangleShape line(sf::Vector2f(180.f, 2.f));
         line.setPosition(400.f - 90.f, lineY);
         line.setFillColor(sf::Color(90, 90, 100, 150));
         window.draw(line);
- 
-        
+
         float pulse = 0.6f + 0.4f * std::sin(flickerTimer * 3.f);
         sf::Uint8 selAlpha   = static_cast<sf::Uint8>(200 + 55 * pulse);
         sf::Color selColor (235, 235, 245, selAlpha);
         sf::Color idleColor( 80,  80,  90, 200);
- 
-        sf::Text optPlay, optSelect;
+
+        sf::Text optPlay, optSelect, optQuit;
         optPlay.setFont(font);
         optSelect.setFont(font);
+        optQuit.setFont(font);
         optPlay.setCharacterSize(24);
         optSelect.setCharacterSize(24);
- 
-        if (mainMenuOption == 0) {
-            optPlay.setString  ("> ADENTRAR A MANSAO <");
-            optSelect.setString("  ESCOLHER INVESTIGADOR  ");
-            optPlay.setFillColor(selColor);
-            optSelect.setFillColor(idleColor);
-        } else {
-            optPlay.setString  ("  ADENTRAR A MANSAO  ");
-            optSelect.setString("> ESCOLHER INVESTIGADOR <");
-            optPlay.setFillColor(idleColor);
-            optSelect.setFillColor(selColor);
-        }
- 
+        optQuit.setCharacterSize(24);
+
+        sf::Color quitSelColor(235, 150, 150, selAlpha);
+
+        optPlay.setString  (mainMenuOption == 0 ? "> ADENTRAR A MANSAO <" : "  ADENTRAR A MANSAO  ");
+        optPlay.setFillColor(mainMenuOption == 0 ? selColor : idleColor);
+
+        optSelect.setString(mainMenuOption == 1 ? "> ESCOLHER INVESTIGADOR <" : "  ESCOLHER INVESTIGADOR  ");
+        optSelect.setFillColor(mainMenuOption == 1 ? selColor : idleColor);
+
+        optQuit.setString  (mainMenuOption == 2 ? "> SAIR <" : "  SAIR  ");
+        optQuit.setFillColor(mainMenuOption == 2 ? quitSelColor : idleColor);
+
         optPlay.setPosition(400.f - optPlay.getGlobalBounds().width / 2.f, 320.f);
         optSelect.setPosition(400.f - optSelect.getGlobalBounds().width / 2.f, 365.f);
- 
+        optQuit.setPosition(400.f - optQuit.getGlobalBounds().width / 2.f, 410.f);
+
         window.draw(optPlay);
         window.draw(optSelect);
- 
-        // dica de controles
+        window.draw(optQuit);
+
+        // Dica de controles
         sf::Text hint;
         hint.setFont(font);
         hint.setCharacterSize(13);
         hint.setFillColor(sf::Color(70, 72, 80));
         hint.setString("W/S move   ENTER confirma");
-        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 430.f);
+        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 465.f);
         window.draw(hint);
  
     } else {
