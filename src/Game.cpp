@@ -229,6 +229,16 @@ void Game::setupLevel() {
     items.addItem(ItemType::Lamp, {150.f,  70.f}, lampItemTex, fullRect);
     items.addItem(ItemType::Lamp, {220.f,  70.f}, lampItemTex, fullRect);
     items.addItem(ItemType::Key,  {160.f,  80.f}, keyItemTex,  keyRect);
+
+    // Portas do vestibulo (tile col/row * 16px)
+    // Entrada (topo, cols 5-7)
+    doors.push_back({ {72.f,   0.f,  64.f, 28.f}, Door::Kind::Entrance });
+    // Parede esquerda, tiles (0,7)-(0,8): x=0, y=112, h=32
+    doors.push_back({ {0.f,  112.f,  16.f, 32.f}, Door::Kind::Locked });
+    // Parede direita, tiles (19,7)-(19,8): x=304, y=112, h=32
+    doors.push_back({ {304.f,112.f,  16.f, 32.f}, Door::Kind::Locked });
+    // Saida para o corredor (baixo, cols 9-11)
+    doors.push_back({ {136.f, 208.f, 64.f, 32.f}, Door::Kind::Exit });
 }
 
 void Game::resetGame() {
@@ -238,6 +248,7 @@ void Game::resetGame() {
     npcs.clear();
     projectiles.clear();
     items.clear();
+    doors.clear();
     player = Player(100.f, 100.f);
     // Recarrega textura: sf::Sprite guarda ponteiro que fica inválido após reatribuição
     player.load(selectedSkin == 1 ? "assets/sprites/player/player_f.png"
@@ -502,6 +513,7 @@ void Game::updatePlaying(float dt) {
     checkEnemyPlayerCollision();
     checkProjectileHits();
     checkItemCollection();
+    checkDoorInteraction();
     checkVictoryCondition();
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
@@ -757,6 +769,64 @@ void Game::checkNPCInteraction() {
         keyEPressed = true;
     }
     if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) keyEPressed = false;
+}
+
+void Game::checkDoorInteraction() {
+    m_doorNearby = false;
+
+    if (dialogueBox.isActive() || pageReader.isOpen()) return;
+
+    sf::FloatRect pb = player.getBounds();
+
+    for (const Door& d : doors) {
+        sf::FloatRect expanded = d.trigger;
+        expanded.left   -= 12.f;
+        expanded.top    -= 12.f;
+        expanded.width  += 24.f;
+        expanded.height += 24.f;
+        if (!expanded.intersects(pb)) continue;
+
+        m_doorNearby    = true;
+        m_doorPromptPos = {
+            d.trigger.left + d.trigger.width  / 2.f,
+            d.trigger.top  + d.trigger.height / 2.f - 16.f
+        };
+
+        if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E) || keyEPressed) return;
+        keyEPressed = true;
+
+        static const sf::IntRect playerRect(16, 0, 16, 24);
+
+        switch (d.kind) {
+            case Door::Kind::Entrance: {
+                std::string line =
+                    "A ma\xc3\xa7" "aneta n\xc3\xa3o cede... Algu\xc3\xa9m a prendeu "
+                    "de um jeito que n\xc3\xa3o d\xc3\xa1 pra mexer.";
+                DialogueSequence seq = {{ "Voc\xc3\xaa", line, true }};
+                dialogueBox.startResponse(seq,
+                    nullptr, sf::IntRect{},
+                    &player.getTexture(), playerRect);
+                break;
+            }
+            case Door::Kind::Locked: {
+                eventQueue.enqueue("A porta est\xc3\xa1 emperrada.");
+                break;
+            }
+            case Door::Kind::Exit: {
+                if (player.hasKey() && player.getDiaryPages() >= totalPages) {
+                    state = GameState::Victory;
+                    audio.stopSfx(SfxId::Footstep);
+                    audio.playMusic(MusicTrack::Victory);
+                } else if (player.hasKey()) {
+                    eventQueue.enqueue("A porta cede com a chave, mas ainda h\xc3\xa1 algo aqui.");
+                } else {
+                    eventQueue.enqueue("A porta est\xc3\xa1 trancada. Precisa de uma chave para sair.");
+                }
+                break;
+            }
+        }
+        return;
+    }
 }
 
 void Game::checkVictoryCondition() {
@@ -1030,6 +1100,9 @@ void Game::renderPlaying() {
 
     if (m_npcNearby && !pageReader.isOpen())
         drawWorldPrompt(m_npcPromptPos, "[E] falar");
+
+    if (m_doorNearby && !dialogueBox.isActive() && !pageReader.isOpen())
+        drawWorldPrompt(m_doorPromptPos, "[E] porta");
 
     window.setView(window.getDefaultView());
 
