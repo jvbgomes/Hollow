@@ -79,6 +79,15 @@ private:
     bool         m_npcNearby    = false;
     sf::Vector2f m_npcPromptPos = {};
 
+    struct Door {
+        enum class Kind { Exit, Entrance, Locked };
+        sf::FloatRect trigger;
+        Kind kind;
+    };
+    std::vector<Door> doors;
+    bool         m_doorNearby    = false;
+    sf::Vector2f m_doorPromptPos = {};
+
     MusicTrack m_pendingTrack = MusicTrack::None;
     float      m_trackTimer   = 0.f;
     static constexpr float TRACK_HOLD = 1.5f;
@@ -119,6 +128,7 @@ private:
     void checkEnemyPlayerCollision();
     void checkItemCollection();
     void checkNPCInteraction();
+    void checkDoorInteraction();
     void checkVictoryCondition();
 
     void drawVignette(sf::Color tint);
