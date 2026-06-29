@@ -93,26 +93,32 @@ HUD::HUD() {
 
     // Sprites
     const float SCALE = 0.5f;
-    if (m_pageTex.loadFromFile("assets/sprites/items_page.png")) {
+    if (m_pageTex.loadFromFile("assets/maps/sprites/items_page.png")) {
         m_pageSprite.setTexture(m_pageTex);
         m_pageSprite.setScale(SCALE, SCALE);
         m_pageSprite.setPosition(697.f, 4.f);
     }
-    if (m_lampTex.loadFromFile("assets/sprites/items_lamp.png")) {
+    if (m_lampTex.loadFromFile("assets/maps/sprites/items_lamp.png")) {
         m_lampSprite.setTexture(m_lampTex);
         m_lampSprite.setScale(SCALE, SCALE);
         m_lampSprite.setPosition(697.f, 23.f);
     }
+    if (m_healTex.loadFromFile("assets/maps/sprites/items_heal.png")) {
+        m_healSprite.setTexture(m_healTex);
+        m_healSprite.setScale(SCALE, SCALE);
+        m_healSprite.setPosition(697.f, 42.f);
+    }
 
-    // Pixel-text: timer, páginas, lamparinas (serão construídos no primeiro update)
+    // Pixel-text: timer, páginas, lamparinas, poções (serão construídos no primeiro update)
     m_timerVA.setPrimitiveType(sf::Quads);
     m_pagesVA.setPrimitiveType(sf::Quads);
     m_lampsVA.setPrimitiveType(sf::Quads);
+    m_potionsVA.setPrimitiveType(sf::Quads);
 }
 
 // ── Update ───────────────────────────────────────────────────────────────────
 void HUD::update(int hp, int /*maxHp*/, float stamina, float maxStamina,
-                  int pages, int totalPages, int lamps, float elapsed) {
+                  int pages, int totalPages, int lamps, float elapsed, int potions) {
 
     if (hp != m_lastHp) rebuildHearts(hp);
 
@@ -156,6 +162,13 @@ void HUD::update(int hp, int /*maxHp*/, float stamina, float maxStamina,
         drawPixelText(m_lampsVA, lp, 717.f, 27.f, 2.f, sf::Color(200, 140, 60));
         m_lastLamps = lp;
     }
+
+    // Poções pixel-text
+    std::string pt = std::to_string(potions);
+    if (pt != m_lastPotions) {
+        drawPixelText(m_potionsVA, pt, 717.f, 46.f, 2.f, sf::Color(100, 200, 130));
+        m_lastPotions = pt;
+    }
 }
 
 // ── Draw ─────────────────────────────────────────────────────────────────────
@@ -166,6 +179,8 @@ void HUD::draw(sf::RenderWindow& window) {
     window.draw(m_timerVA);
     window.draw(m_pageSprite);
     window.draw(m_lampSprite);
+    window.draw(m_healSprite);
     window.draw(m_pagesVA);
     window.draw(m_lampsVA);
+    window.draw(m_potionsVA);
 }
