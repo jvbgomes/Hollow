@@ -1,17 +1,18 @@
 #include "Player.hpp"
 #include "Map.hpp"
 #include <cmath>
+#include <algorithm>
 
 const float Player::FRAME_DUR = 0.125f;
 
 Player::Player(float x, float y) : Entity(x, y),
     m_speed(85.f), m_stamina(100.f), m_maxStamina(100.f), m_sprinting(false),
-    m_health(3), m_pages(0), m_lanterns(3), m_hasKey(false),
+    m_health(3), m_pages(0), m_lanterns(3), m_hasKey(false), m_potions(0),
     m_faceDir(FaceDir::Down), m_animFrame(1), m_animTimer(0.f), m_moving(false),
     m_lastDir(0.f, 1.f),
     m_attackState(AttackState::None), m_attackTimer(0.f), m_readyToThrow(false)
 {
-    load("assets/sprites/player/player_m.png");
+    load("assets/maps/sprites/player/player_m.png");
 }
 
 void Player::load(const std::string& path) {
@@ -173,6 +174,15 @@ bool         Player::hasKey()          const { return m_hasKey; }
 void Player::addPage()    { m_pages++; }
 void Player::addLantern() { m_lanterns++; }
 void Player::collectKey() { m_hasKey = true; }
+void Player::heal(int amount) { m_health = std::min(m_health + amount, 3); }
+void Player::addPotion()      { m_potions++; }
+int  Player::getPotions()     const { return m_potions; }
+bool Player::usePotion() {
+    if (m_potions <= 0 || m_health >= 3) return false;
+    m_potions--;
+    heal(1);
+    return true;
+}
 
 bool Player::useLantern() {
     if (m_lanterns > 0) { m_lanterns--; return true; }

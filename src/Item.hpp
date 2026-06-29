@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-enum class ItemType { Page, Lamp, Key };
+enum class ItemType { Page, Lamp, Key, Heal };
 
 class Item {
 public:

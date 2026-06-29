@@ -30,6 +30,7 @@ std::string AudioManager::sfxPath(SfxId id) {
         case SfxId::BookOpen:     return "assets/audio/sfx/book_open.wav";
         case SfxId::BookClose:    return "assets/audio/sfx/book_close.wav";
         case SfxId::CursorMove:   return "assets/audio/sfx/cursor_move.wav";
+        case SfxId::Drink:        return "assets/audio/sfx/drink.wav";
         default: return "";
     }
 }
@@ -37,7 +38,7 @@ std::string AudioManager::sfxPath(SfxId id) {
 // ── Construtor — pré-carrega todos os SFX ────────────────────────────────────
 
 AudioManager::AudioManager() {
-    for (int i = (int)SfxId::Footstep; i <= (int)SfxId::CursorMove; ++i)
+    for (int i = (int)SfxId::Footstep; i <= (int)SfxId::Drink; ++i)
         loadSfx(static_cast<SfxId>(i));
 }
 

@@ -27,7 +27,8 @@ enum class SfxId {
     BossGrowl,
     BookOpen,
     BookClose,
-    CursorMove
+    CursorMove,
+    Drink
 };
 
 class AudioManager {

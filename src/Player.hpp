@@ -28,6 +28,10 @@ public:
     void addLantern();
     void collectKey();
     bool useLantern();
+    void heal(int amount = 1);
+    void addPotion();
+    int  getPotions() const;
+    bool usePotion();
 
 private:
     static const int   FRAME_W   = 16;
@@ -44,6 +48,7 @@ private:
     int     m_pages;
     int     m_lanterns;
     bool    m_hasKey;
+    int     m_potions;
 
     FaceDir m_faceDir;
     int     m_animFrame;
