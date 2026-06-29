@@ -23,6 +23,9 @@ public:
     void draw(sf::RenderWindow& window);
     void clear();
 
+    // Retorna posições (top-left) de todos os itens ainda presentes
+    std::vector<sf::Vector2f> getPositions() const;
+
     // Verifica se há item próximo sem coletar
     bool hasNearbyItem(const sf::FloatRect& playerBounds) const;
 

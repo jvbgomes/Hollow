@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
+#include <map>
+#include <set>
 #include "Player.hpp"
 #include "Map.hpp"
 #include "NPC.hpp"
@@ -40,6 +42,7 @@ private:
     AudioManager audio;
 
     bool  m_dialogueWasActive  = false;
+    bool  m_hallShadowsSpawned = false;
     float m_bossGrowlCooldown  = 0.f;
     bool  m_bossWasNearby      = false;
 
@@ -65,6 +68,18 @@ private:
     sf::Texture pageItemTex;
     sf::Texture lampItemTex;
     sf::Texture keyItemTex;
+    sf::Texture healItemTex;
+
+    sf::RenderTexture m_lightMap;
+
+    struct LightSource {
+        sf::Vector2f pos;
+        float baseRadius;
+        float flickerAmt;
+        float flickerSpeed;
+        float phase;
+    };
+    std::vector<LightSource> m_lights;
 
     sf::Font font;
     sf::Text titleText;
@@ -88,6 +103,16 @@ private:
     bool         m_doorNearby    = false;
     sf::Vector2f m_doorPromptPos = {};
 
+    struct Transition {
+        sf::FloatRect trigger;
+        std::string   targetRoom;
+        sf::Vector2f  spawnPos;
+        bool          eRequired = false;
+    };
+    std::vector<Transition> transitions;
+    std::string m_currentRoom;
+    std::map<std::string, std::set<std::pair<int,int>>> m_presentItems;
+
     MusicTrack m_pendingTrack = MusicTrack::None;
     float      m_trackTimer   = 0.f;
     static constexpr float TRACK_HOLD = 1.5f;
@@ -102,6 +127,7 @@ private:
 
     bool keyEPressed;
     bool keyQPressed;
+    bool keyFPressed;
     bool keyEnterPressed;
     bool keyUpPressed;
     bool keyDownPressed;
@@ -120,7 +146,11 @@ private:
     void update(float deltaTime);
     void render();
 
+    void loadRoom(const std::string& room, sf::Vector2f spawnPos);
     void setupLevel();
+    void setupHallPrincipal();
+    void setupQuartoCrianca();
+    void setupBiblioteca();
     void resetGame();
 
     void updatePlaying(float deltaTime);
@@ -129,6 +159,7 @@ private:
     void checkItemCollection();
     void checkNPCInteraction();
     void checkDoorInteraction();
+    void checkTransitions();
     void checkVictoryCondition();
 
     void drawVignette(sf::Color tint);

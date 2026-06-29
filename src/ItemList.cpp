@@ -51,6 +51,17 @@ void ItemList::update(float deltaTime) {
     }
 }
 
+std::vector<sf::Vector2f> ItemList::getPositions() const {
+    std::vector<sf::Vector2f> positions;
+    Item* current = head;
+    while (current) {
+        sf::FloatRect b = current->getBounds();
+        positions.push_back({b.left, b.top});
+        current = current->getNext();
+    }
+    return positions;
+}
+
 bool ItemList::getNearbyItemInfo(const sf::FloatRect& playerBounds,
                                   sf::Vector2f& outPos, ItemType& outType) const {
     Item* current = head;

@@ -60,6 +60,10 @@ bool Map::loadTileset(Tileset& ts, const std::string& tsxPath) {
 }
 
 bool Map::parseTMX(const std::string& path) {
+    m_tilesets.clear();
+    m_visuals.clear();
+    m_collision.clear();
+
     std::string content = readFile(path);
     if (content.empty()) return false;
 
@@ -89,7 +93,9 @@ bool Map::parseTMX(const std::string& path) {
     std::sort(m_tilesets.begin(), m_tilesets.end(),
               [](const Tileset& a, const Tileset& b){ return a.firstgid > b.firstgid; });
 
-    static const std::vector<std::string> VISUAL_ORDER = {"Floor","Walls","Furniture","Props"};
+    static const std::vector<std::string> VISUAL_ORDER = {
+        "Floor", "Floor2", "Walls", "Stairs", "Furniture", "Banister", "Props"
+    };
     std::map<std::string, Grid> layerMap;
 
     pos = 0;

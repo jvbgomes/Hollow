@@ -16,6 +16,7 @@ Game::Game()
       gameTimer(0.f),
       keyEPressed(false),
       keyQPressed(false),
+      keyFPressed(false),
       keyEnterPressed(false),
       keyUpPressed(false),
       keyDownPressed(false),
@@ -26,10 +27,9 @@ Game::Game()
 {
     window.create(sf::VideoMode(800, 600), "Hollow");
     window.setFramerateLimit(60);
+    m_lightMap.create(800, 600);
 
     audio.playMusic(MusicTrack::Menu);
-
-    map.load("assets/maps/vestibulo.tmx");
 
     dialogueBox.loadFont("assets/Arial.ttf");
     eventQueue.loadFont("assets/Arial.ttf");
@@ -69,7 +69,7 @@ Game::Game()
         dustParticles.push_back(p);
     }
 
-    setupLevel();
+    loadRoom("vestibulo", {116.f, 116.f});
 }
 
 Game::~Game() {
@@ -77,15 +77,46 @@ Game::~Game() {
     for (NPC* n : npcs)     delete n;
 }
 
-void Game::setupLevel() {
-    enemies.push_back(new Spectre(100.f, 200.f));
+void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
+    for (Enemy* e : enemies) delete e;
+    for (NPC*   n : npcs)    delete n;
+    enemies.clear();
+    npcs.clear();
+    projectiles.clear();
 
-    npcTexEleanor.loadFromFile("assets/sprites/npcs/eleanor/eleanor.png");
-    npcTexThomas .loadFromFile("assets/sprites/npcs/thomas/thomas.png");
-    npcTexCrianca.loadFromFile("assets/sprites/npcs/crianca/crianca.png");
+    // Salva quais itens ainda existem na sala atual antes de trocar
+    if (!m_currentRoom.empty()) {
+        std::set<std::pair<int,int>> present;
+        for (const auto& p : items.getPositions())
+            present.insert({(int)std::round(p.x), (int)std::round(p.y)});
+        m_presentItems[m_currentRoom] = std::move(present);
+    }
+    items.clear();
+    doors.clear();
+    transitions.clear();
+    hitEffects.clear();
+
+    m_lights.clear();
+    m_hallShadowsSpawned = false;
+    m_currentRoom = room;
+    player.setPosition(spawnPos.x, spawnPos.y);
+    map.load("assets/maps/" + room + ".tmx");
+
+    if      (room == "vestibulo")       setupLevel();
+    else if (room == "hall_principal")  setupHallPrincipal();
+    else if (room == "quarto_crianca")  setupQuartoCrianca();
+    else if (room == "biblioteca")      setupBiblioteca();
+}
+
+void Game::setupLevel() {
+    enemies.push_back(new Spectre(116.f, 216.f));
+
+    npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
+    npcTexThomas .loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
+    npcTexCrianca.loadFromFile("assets/maps/sprites/npcs/crianca/crianca.png");
     sf::IntRect npcRect(16, 0, 16, 24);
 
-    NPC* eleanor = new NPC("Eleanor", 250.f, 80.f, npcTexEleanor, npcRect);
+    NPC* eleanor = new NPC("Eleanor", 266.f, 96.f, npcTexEleanor, npcRect);
     eleanor->addOption("Onde estão as páginas do diário?", {
         {"Você",    "Eleanor, sabe onde estão as páginas do diário?",                         true},
         {"Eleanor", "As páginas estão espalhadas pela mansão inteira...",                     false},
@@ -103,7 +134,7 @@ void Game::setupLevel() {
     });
     npcs.push_back(eleanor);
 
-    NPC* thomas = new NPC("Thomas", 70.f, 200.f, npcTexThomas, npcRect);
+    NPC* thomas = new NPC("Thomas", 86.f, 216.f, npcTexThomas, npcRect);
     thomas->addOption("Onde está a chave para sair?", {
         {"Você",   "Thomas, preciso sair daqui. Onde está a chave?",                          true},
         {"Thomas", "A chave está no porão. Atrás do espelho quebrado.",                       false},
@@ -116,27 +147,24 @@ void Game::setupLevel() {
     });
     npcs.push_back(thomas);
 
-    NPC* crianca = new NPC("A Criança", 260.f, 195.f, npcTexCrianca, npcRect);
-    crianca->addOption("Quem é você?", {
-        {"Você",      "Menino... quem é você? O que está fazendo aqui?",                      true},
-        {"A Criança", "Eu sempre estive aqui. Você é que é novidade.",                        false},
-        {"A Criança", "Ela não dorme. Quanto mais você corre... mais ela se alimenta.",       false},
-    });
-    crianca->addOption("Como saio daqui?", {
-        {"Você",      "Preciso sair. Pode me ajudar?",                                        true},
-        {"A Criança", "A saída não se acha. Ela se revela.",                                  false},
-        {"A Criança", "Reúna o que a mansão esconde. Então ela aparecerá para você.",         false},
-    });
-    npcs.push_back(crianca);
 
-    pageItemTex.loadFromFile("assets/sprites/items_page.png");
-    lampItemTex.loadFromFile("assets/sprites/items_lamp.png");
+    pageItemTex.loadFromFile("assets/maps/sprites/items_page.png");
+    lampItemTex.loadFromFile("assets/maps/sprites/items_lamp.png");
     keyItemTex.loadFromFile("assets/tilesets/PropsV2.png");
+    healItemTex.loadFromFile("assets/maps/sprites/items_heal.png");
 
     sf::IntRect fullRect(0, 0, 32, 32);
     sf::IntRect keyRect (0, 16, 16, 16);
 
-    items.addItem(ItemType::Page, { 55.f, 120.f}, pageItemTex, fullRect, 999.f,
+    // Só adiciona itens que ainda não foram coletados/expirados nesta sala
+    auto savedIt = m_presentItems.find("vestibulo");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true; // primeira visita
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+
+    if (itemOk({ 71.f, 136.f}))
+    items.addItem(ItemType::Page, { 71.f, 136.f}, pageItemTex, fullRect, 999.f,
         "Diário — Primeiro Dia",
         "A porta fechou atrás de mim. Não foi\n"
         "o vento — ouvi o trinco. Alguém fechou.\n\n"
@@ -153,7 +181,8 @@ void Game::setupLevel() {
         "Preciso encontrar uma saída.\n"
         "Antes que o sol desapareça de vez.");
 
-    items.addItem(ItemType::Page, {270.f, 150.f}, pageItemTex, fullRect, 999.f,
+    if (itemOk({286.f, 166.f}))
+    items.addItem(ItemType::Page, {286.f, 166.f}, pageItemTex, fullRect, 999.f,
         "Nota de Eleanor — Sobre a Entidade",
         "Errei ao chamar de sobrenatural.\n"
         "Sobrenatural implica exceção à regra.\n"
@@ -170,7 +199,8 @@ void Game::setupLevel() {
         "Mas há como sair. A saída existe.\n"
         "Eu só não consigo mais me mover.");
 
-    items.addItem(ItemType::Page, {140.f, 200.f}, pageItemTex, fullRect, 999.f,
+    if (itemOk({156.f, 216.f}))
+    items.addItem(ItemType::Page, {156.f, 216.f}, pageItemTex, fullRect, 999.f,
         "Registro da Construção — 1891",
         "Ao Sr. Arquiteto Brenner,\n\n"
         "Interrompa as escavações do porão.\n"
@@ -188,7 +218,8 @@ void Game::setupLevel() {
         "O nome parece suficiente.\n\n"
         "— Arq. M. Voss, proprietário");
 
-    items.addItem(ItemType::Page, { 80.f, 160.f}, pageItemTex, fullRect, 999.f,
+    if (itemOk({ 96.f, 176.f}))
+    items.addItem(ItemType::Page, { 96.f, 176.f}, pageItemTex, fullRect, 999.f,
         "Anotações de Thomas — Sem Data",
         "Observei por semanas.\n\n"
         "As sombras evitam o porão.\n"
@@ -207,7 +238,8 @@ void Game::setupLevel() {
         "Não olhe para trás.\n"
         "Apenas saia.");
 
-    items.addItem(ItemType::Page, {200.f,  90.f}, pageItemTex, fullRect, 999.f,
+    if (itemOk({216.f, 106.f}))
+    items.addItem(ItemType::Page, {216.f, 106.f}, pageItemTex, fullRect, 999.f,
         "A Última Mensagem — M.V.",
         "Encontrei as páginas. Falei com todos.\n"
         "Thomas me deu a chave.\n"
@@ -226,44 +258,108 @@ void Game::setupLevel() {
         "não cometa o mesmo erro.\n\n"
         "— M.V., novembro de 1987");
 
-    items.addItem(ItemType::Lamp, {150.f,  70.f}, lampItemTex, fullRect);
-    items.addItem(ItemType::Lamp, {220.f,  70.f}, lampItemTex, fullRect);
-    items.addItem(ItemType::Key,  {160.f,  80.f}, keyItemTex,  keyRect);
+    if (itemOk({166.f,  86.f})) items.addItem(ItemType::Lamp, {166.f,  86.f}, lampItemTex, fullRect);
+    if (itemOk({236.f,  86.f})) items.addItem(ItemType::Lamp, {236.f,  86.f}, lampItemTex, fullRect);
+    if (itemOk({176.f,  96.f})) items.addItem(ItemType::Key,  {176.f,  96.f}, keyItemTex,  keyRect);
 
-    // Portas do vestibulo (tile col/row * 16px)
-    // Entrada (topo, cols 5-7)
-    doors.push_back({ {72.f,   0.f,  64.f, 28.f}, Door::Kind::Entrance });
-    // Parede esquerda, tiles (0,7)-(0,8): x=0, y=112, h=32
-    doors.push_back({ {0.f,  112.f,  16.f, 32.f}, Door::Kind::Locked });
-    // Parede direita, tiles (19,7)-(19,8): x=304, y=112, h=32
-    doors.push_back({ {304.f,112.f,  16.f, 32.f}, Door::Kind::Locked });
-    // Saida para o corredor (baixo, cols 9-11)
-    doors.push_back({ {136.f, 208.f, 64.f, 32.f}, Door::Kind::Exit });
+    // Portas do vestibulo (posicoes apos expansao +1 tile = +16px em x e y)
+    // Entrada: tiles (10,3)-(11,3) = x=160-191, y=48-63
+    doors.push_back({ {158.f,  44.f,  36.f, 28.f}, Door::Kind::Entrance });
+    // Parede esquerda, tiles (1,8)-(1,9): x=16, y=128, h=32
+    doors.push_back({ { 16.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
+    // Parede direita, tiles (20,8)-(20,9): x=320, y=128, h=32
+    doors.push_back({ {320.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
+    // Passagem sul → hall principal (walk-through, sem E)
+    transitions.push_back({ {144.f, 228.f, 80.f, 28.f}, "hall_principal", {208.f, 76.f}, false });
+
+    // Fontes de luz: pos, raioBase, flickerAmt, flickerSpeed, phase
+    // Candelabro esq  (tiles 9,2-4): chama no tile (9,2) → pixel (152,40)
+    m_lights.push_back({ {152.f, 40.f}, 60.f, 10.f, 2.3f, 0.0f });
+    // Candelabro dir  (tiles 12,2-4): chama no tile (12,2) → pixel (200,40)
+    m_lights.push_back({ {200.f, 40.f}, 60.f, 10.f, 2.1f, 1.4f });
+    // Candelabro mesa (tiles 9-10, 7-8): centro → pixel (160,120)
+    m_lights.push_back({ {160.f, 120.f}, 45.f,  7.f, 2.6f, 2.9f });
+    // Vela (15,2) → pixel (248,40)
+    m_lights.push_back({ {248.f,  40.f}, 40.f,  8.f, 2.8f, 1.7f });
+    // Vela (17,14) → pixel (280,232)
+    m_lights.push_back({ {280.f, 232.f}, 40.f,  8.f, 2.5f, 3.3f });
+}
+
+void Game::setupHallPrincipal() {
+    // Transição topo → vestíbulo (player sobe pela escadaria)
+    transitions.push_back({ {192.f, 60.f, 32.f, 24.f}, "vestibulo", {176.f, 208.f}, true });
+
+    // Passagem esquerda (cols 0, rows 4-5) → quarto da criança
+    transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
+    // Passagem direita (col 25, rows 4-5) → biblioteca
+    transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 136.f}, true });
+
+    // Fontes de luz do hall
+    // (22,1) e (17,3): velas/candelabros individuais no andar superior
+    m_lights.push_back({ {360.f,  24.f}, 55.f, 8.f, 2.2f, 0.0f });
+    m_lights.push_back({ {280.f,  56.f}, 50.f, 7.f, 2.5f, 1.3f });
+    // (7-8, 8-9) e (18-19, 8-9): candelabros 2×2 no andar inferior
+    m_lights.push_back({ {128.f, 144.f}, 65.f, 10.f, 2.0f, 2.1f });
+    m_lights.push_back({ {304.f, 144.f}, 65.f, 10.f, 2.3f, 0.7f });
+}
+
+void Game::setupQuartoCrianca() {
+    // Saída direita → hall principal (cols 15-17, rows 5-8 do mapa)
+    transitions.push_back({ {255.f, 78.f, 32.f, 68.f}, "hall_principal", {24.f, 76.f}, true });
+
+    // Luzes: (col,row) → pixel centro = col*16, row*16
+    m_lights.push_back({ {256.f,  64.f}, 50.f, 8.f, 2.1f, 0.0f });  // (16,4)
+    m_lights.push_back({ { 16.f, 112.f}, 45.f, 7.f, 2.4f, 0.8f });  // (1,7)
+    m_lights.push_back({ { 32.f, 112.f}, 45.f, 7.f, 2.4f, 1.6f });  // (2,7)
+
+    // NPC: A Criança (centro do quarto)
+    npcTexCrianca.loadFromFile("assets/maps/sprites/npcs/crianca/crianca.png");
+    sf::IntRect npcRect(16, 0, 16, 24);
+    NPC* crianca = new NPC("A Crian\xc3\xa7" "a", 120.f, 120.f, npcTexCrianca, npcRect);
+    crianca->addOption("Quem \xc3\xa9 voc\xc3\xaa?", {
+        {"Voc\xc3\xaa",      "Menino... quem \xc3\xa9 voc\xc3\xaa? O que est\xc3\xa1 fazendo aqui?",   true},
+        {"A Crian\xc3\xa7" "a", "Eu sempre estive aqui. Voc\xc3\xaa \xc3\xa9 que \xc3\xa9 novidade.",  false},
+        {"A Crian\xc3\xa7" "a", "Ela n\xc3\xa3o dorme. Quanto mais voc\xc3\xaa corre... mais ela se alimenta.", false},
+    });
+    crianca->addOption("Como saio daqui?", {
+        {"Voc\xc3\xaa",      "Preciso sair. Pode me ajudar?",                                          true},
+        {"A Crian\xc3\xa7" "a", "A sa\xc3\xad" "da n\xc3\xa3o se acha. Ela se revela.",                false},
+        {"A Crian\xc3\xa7" "a", "Re\xc3\xba" "na o que a mans\xc3\xa3o esconde. Ent\xc3\xa3o ela aparecer\xc3\xa1 para voc\xc3\xaa.", false},
+    });
+    npcs.push_back(crianca);
+
+    // Item de cura (poção)
+    auto savedIt = m_presentItems.find("quarto_crianca");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect healRect(0, 0, 32, 32);
+    if (itemOk({80.f, 160.f})) items.addItem(ItemType::Heal, {80.f, 160.f}, healItemTex, healRect, 999.f);
+}
+
+void Game::setupBiblioteca() {
+    // Saída esquerda → hall principal (col 0-1, rows 5-9 do mapa)
+    transitions.push_back({ {0.f, 78.f, 20.f, 84.f}, "hall_principal", {392.f, 76.f}, true });
 }
 
 void Game::resetGame() {
-    for (Enemy* e : enemies) delete e;
-    for (NPC* n : npcs)     delete n;
-    enemies.clear();
-    npcs.clear();
-    projectiles.clear();
-    items.clear();
-    doors.clear();
+    m_presentItems.clear();
     player = Player(100.f, 100.f);
-    // Recarrega textura: sf::Sprite guarda ponteiro que fica inválido após reatribuição
-    player.load(selectedSkin == 1 ? "assets/sprites/player/player_f.png"
-                                  : "assets/sprites/player/player_m.png");
+    player.load(selectedSkin == 1 ? "assets/maps/sprites/player/player_f.png"
+                                  : "assets/maps/sprites/player/player_m.png");
     damageTimer = 1.5f;
-    gameTimer = 0.f;
-    hitEffects.clear();
+    gameTimer   = 0.f;
 
-    dialogueBox.close(); 
-    pageReader.close(); 
+    dialogueBox.close();
+    pageReader.close();
 
     currentMenuState = MenuState::Main;
-    mainMenuOption = 0;
-    characterOption = 0;
-    setupLevel();
+    mainMenuOption   = 0;
+    characterOption  = 0;
+
+    // loadRoom limpa entidades, carrega mapa e popula o cômodo
+    loadRoom("vestibulo", {116.f, 116.f});
 }
 
 void Game::run() {
@@ -329,7 +425,7 @@ void Game::update(float dt) {
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
                     if (mainMenuOption == 0) {
                         if (selectedSkin == 1)
-                            player.load("assets/sprites/player/player_f.png");
+                            player.load("assets/maps/sprites/player/player_f.png");
                         state = GameState::Playing;
                         audio.playMusic(MusicTrack::Explore);
                     } else if (mainMenuOption == 1) {
@@ -439,9 +535,9 @@ void Game::updatePlaying(float dt) {
         }
 
         MusicTrack wanted;
-        if (bossOn)           wanted = MusicTrack::Boss;
-        else if (nearest < 90.f)  wanted = MusicTrack::Chase;
-        else if (nearest < 180.f) wanted = MusicTrack::EnemyNearby;
+        if (bossOn)            wanted = MusicTrack::Boss;
+        else if (nearest < 160.f) wanted = MusicTrack::Chase;
+        else if (nearest < 280.f) wanted = MusicTrack::EnemyNearby;
         else                      wanted = MusicTrack::Explore;
 
         // Debounce: só troca após o mesmo contexto ser estável por TRACK_HOLD segundos
@@ -472,6 +568,16 @@ void Game::updatePlaying(float dt) {
     }
     m_bossWasNearby = bossNearby;
 
+    // Spawn dos Shadows ao descer a escadaria (tiles 11-14, row 10)
+    if (m_currentRoom == "hall_principal" && !m_hallShadowsSpawned) {
+        sf::FloatRect stairExit(176.f, 158.f, 64.f, 20.f);
+        if (stairExit.intersects(player.getBounds())) {
+            m_hallShadowsSpawned = true;
+            enemies.push_back(new Shadow(  8.f, 248.f));
+            enemies.push_back(new Shadow(384.f, 240.f));
+        }
+    }
+
     for (Enemy* e : enemies)
         e->update(dt, map, player.getPosition());
 
@@ -492,7 +598,8 @@ void Game::updatePlaying(float dt) {
         player.getHealth(), 3,
         player.getStamina(), 100.f,
         player.getDiaryPages(), totalPages,
-        player.getSaltLanterns(), gameTimer
+        player.getSaltLanterns(), gameTimer,
+        player.getPotions()
     );
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q) && !keyQPressed) {
@@ -500,6 +607,19 @@ void Game::updatePlaying(float dt) {
         keyQPressed = true;
     }
     if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) keyQPressed = false;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::F) && !keyFPressed) {
+        keyFPressed = true;
+        if (player.usePotion()) {
+            audio.playSfx(SfxId::Drink);
+            eventQueue.enqueue("Voc\xc3\xaa bebeu a po\xc3\xa7\xc3\xa3o. +1 cora\xc3\xa7\xc3\xa3o.");
+        } else if (player.getPotions() <= 0) {
+            eventQueue.enqueue("Sem po\xc3\xa7\xc3\xb5" "es.");
+        } else {
+            eventQueue.enqueue("Vida j\xc3\xa1 est\xc3\xa1 cheia.");
+        }
+    }
+    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::F)) keyFPressed = false;
 
     if (player.isReadyToThrow()) {
         if (player.useLantern()) {
@@ -509,11 +629,12 @@ void Game::updatePlaying(float dt) {
         }
     }
 
+    checkDoorInteraction();
+    checkTransitions();
     checkNPCInteraction();
     checkEnemyPlayerCollision();
     checkProjectileHits();
     checkItemCollection();
-    checkDoorInteraction();
     checkVictoryCondition();
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
@@ -665,6 +786,7 @@ void Game::checkItemCollection() {
             case ItemType::Page: m_itemPromptLabel = "[E] livro";      break;
             case ItemType::Lamp: m_itemPromptLabel = "[E] lamparina";  break;
             case ItemType::Key:  m_itemPromptLabel = "[E] chave";      break;
+            case ItemType::Heal: m_itemPromptLabel = "[E] po\xc3\xa7\xc3\xa3o"; break;
         }
     }
 
@@ -698,6 +820,11 @@ void Game::checkItemCollection() {
                 eventQueue.enqueue("Chave da mansao encontrada!");
                 eventQueue.enqueue("Encontre a saida.");
                 break;
+            case ItemType::Heal:
+                player.addPotion();
+                audio.playSfx(SfxId::ItemCollect);
+                eventQueue.enqueue("Po\xc3\xa7\xc3\xa3o coletada  [F para usar]");
+                break;
         }
     }
 }
@@ -713,6 +840,15 @@ void Game::checkNPCInteraction() {
         m_npcPromptPos = nearbyNPC->getPosition();
 
     if (!nearbyNPC) {
+        // Diálogo pode ter sido aberto por porta ou outro trigger sem NPC
+        if (dialogueBox.isActive()) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && !keyEPressed) {
+                dialogueBox.advanceDialogue();
+                keyEPressed = true;
+            }
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) keyEPressed = false;
+            return;
+        }
         if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) keyEPressed   = false;
         if (!sf::Keyboard::isKeyPressed(sf::Keyboard::W)) keyUpPressed   = false;
         if (!sf::Keyboard::isKeyPressed(sf::Keyboard::S)) keyDownPressed = false;
@@ -769,6 +905,36 @@ void Game::checkNPCInteraction() {
         keyEPressed = true;
     }
     if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) keyEPressed = false;
+}
+
+void Game::checkTransitions() {
+    if (dialogueBox.isActive() || pageReader.isOpen()) return;
+
+    sf::FloatRect pb = player.getBounds();
+    for (const Transition& t : transitions) {
+        if (!t.eRequired) {
+            if (t.trigger.intersects(pb)) {
+                loadRoom(t.targetRoom, t.spawnPos);
+                return;
+            }
+            continue;
+        }
+
+        sf::FloatRect prox = t.trigger;
+        prox.left -= 12.f; prox.top -= 12.f;
+        prox.width += 24.f; prox.height += 24.f;
+        if (!prox.intersects(pb)) continue;
+
+        m_doorNearby = true;
+        m_doorPromptPos = { t.trigger.left + t.trigger.width * 0.5f,
+                            t.trigger.top - 12.f };
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && !keyEPressed) {
+            keyEPressed = true;
+            loadRoom(t.targetRoom, t.spawnPos);
+        }
+        return;
+    }
 }
 
 void Game::checkDoorInteraction() {
@@ -996,8 +1162,8 @@ void Game::renderMenu() {
         drawCard(girlCardX, characterOption == 1, sf::Color(230, 140, 170));
  
         sf::Texture texBoy, texGirl;
-        if (texBoy.loadFromFile("assets/sprites/player/player_m.png") &&
-            texGirl.loadFromFile("assets/sprites/player/player_f.png")) {
+        if (texBoy.loadFromFile("assets/maps/sprites/player/player_m.png") &&
+            texGirl.loadFromFile("assets/maps/sprites/player/player_f.png")) {
  
             sf::Sprite spriteBoy(texBoy);
             spriteBoy.setTextureRect(sf::IntRect(16, 0, 16, 24));
@@ -1068,7 +1234,10 @@ void Game::renderMenu() {
  
 
 void Game::renderPlaying() {
-    sf::View camera(player.getPosition(), sf::Vector2f(800.f, 600.f));
+    window.clear(sf::Color(0, 0, 0));
+    sf::Vector2f camPos(std::round(player.getPosition().x),
+                        std::round(player.getPosition().y));
+    sf::View camera(camPos, sf::Vector2f(800.f, 600.f));
     window.setView(camera);
 
     map.draw(window);
@@ -1081,30 +1250,92 @@ void Game::renderPlaying() {
 
     player.draw(window);
 
-    auto drawWorldPrompt = [&](sf::Vector2f pos, const std::string& label) {
-        itemPromptText.setString(sf::String::fromUtf8(label.begin(), label.end()));
-        itemPromptText.setScale(0.45f, 0.45f);
+    // Balão de interrogação flutuante acima de objetos interativos
+    auto drawBalloon = [&](sf::Vector2f worldPos) {
+        const float bw = 13.f, bh = 13.f, tailH = 4.f;
+        float bx = worldPos.x - bw * 0.5f;
+        float by = worldPos.y - bh - tailH - 3.f;
+
+        sf::RectangleShape bg({bw, bh});
+        bg.setFillColor(sf::Color(255, 252, 210, 240));
+        bg.setOutlineColor(sf::Color(70, 50, 10, 220));
+        bg.setOutlineThickness(1.f);
+        bg.setPosition(bx, by);
+        window.draw(bg);
+
+        float cx = worldPos.x, ty = by + bh;
+        sf::VertexArray tail(sf::Triangles, 3);
+        tail[0] = {{cx - 3.f, ty},          sf::Color(255, 252, 210, 240)};
+        tail[1] = {{cx + 3.f, ty},          sf::Color(255, 252, 210, 240)};
+        tail[2] = {{cx,       ty + tailH},  sf::Color(255, 252, 210, 240)};
+        window.draw(tail);
+
+        itemPromptText.setString("?");
+        itemPromptText.setScale(0.36f, 0.36f);
         sf::FloatRect tb = itemPromptText.getLocalBounds();
-        float cx = pos.x - tb.width * 0.45f / 2.f;
-        float cy = pos.y - 20.f;
-        itemPromptText.setFillColor(sf::Color(0, 0, 0, 170));
-        itemPromptText.setPosition(cx + 0.9f, cy + 0.9f);
-        window.draw(itemPromptText);
-        itemPromptText.setFillColor(sf::Color(255, 255, 255, 230));
-        itemPromptText.setPosition(cx, cy);
+        itemPromptText.setFillColor(sf::Color(50, 30, 5, 255));
+        itemPromptText.setPosition(
+            bx + bw * 0.5f - (tb.left + tb.width  * 0.5f) * 0.36f,
+            by + bh * 0.5f - (tb.top  + tb.height * 0.5f) * 0.36f - 0.5f);
         window.draw(itemPromptText);
     };
 
     if (m_itemNearby && !dialogueBox.isActive() && !pageReader.isOpen())
-        drawWorldPrompt(m_itemPromptPos, m_itemPromptLabel);
+        drawBalloon(m_itemPromptPos);
 
     if (m_npcNearby && !pageReader.isOpen())
-        drawWorldPrompt(m_npcPromptPos, "[E] falar");
+        drawBalloon(m_npcPromptPos);
 
     if (m_doorNearby && !dialogueBox.isActive() && !pageReader.isOpen())
-        drawWorldPrompt(m_doorPromptPos, "[E] porta");
+        drawBalloon(m_doorPromptPos);
 
-    window.setView(window.getDefaultView());
+    // --- Iluminação estilo Mad Father ---
+    {
+        static const float PLAYER_R = 130.f;
+        static const int   SEGS     = 48;
+        static const float PI2      = 6.28318530f;
+
+        // Lightmap começa escuro; luzes somam cor (aditivo → sobreposição = mais brilhante)
+        m_lightMap.clear(sf::Color(12, 10, 16, 255));
+
+        auto drawLight = [&](sf::Vector2f center, float radius, sf::Color inner) {
+            sf::VertexArray fan(sf::TriangleFan, SEGS + 2);
+            fan[0].position = center;
+            fan[0].color    = inner;
+            for (int i = 0; i <= SEGS; ++i) {
+                float a = i * PI2 / SEGS;
+                fan[i + 1].position = { center.x + std::cos(a) * radius,
+                                        center.y + std::sin(a) * radius };
+                fan[i + 1].color = sf::Color(0, 0, 0, 255);
+            }
+            m_lightMap.draw(fan, sf::BlendAdd);
+        };
+
+        sf::Vector2f camCenter(std::round(player.getPosition().x),
+                               std::round(player.getPosition().y));
+
+        // Velas/candelabros: tom quente de chama
+        for (const LightSource& light : m_lights) {
+            float flicker = light.flickerAmt * (
+                std::sin(gameTimer * light.flickerSpeed         + light.phase)        * 0.6f +
+                std::sin(gameTimer * light.flickerSpeed * 1.7f + light.phase * 2.1f) * 0.4f);
+            float radius = light.baseRadius + flicker;
+            sf::Vector2f sp = light.pos - camCenter + sf::Vector2f(400.f, 300.f);
+            drawLight(sp, radius, sf::Color(255, 190, 80, 255));
+        }
+
+        // Luz do player: levemente fria (lanterna)
+        drawLight({400.f, 300.f}, PLAYER_R, sf::Color(210, 215, 255, 255));
+
+        m_lightMap.display();
+        window.setView(window.getDefaultView());
+        sf::Sprite overlay(m_lightMap.getTexture());
+        // Multiply: onde o lightmap é escuro, o mundo escurece proporcionalmente
+        static const sf::BlendMode mulBlend(
+            sf::BlendMode::DstColor, sf::BlendMode::Zero);
+        window.draw(overlay, mulBlend);
+    }
+    // --- fim da iluminação ---
 
     dialogueBox.draw(window);
     eventQueue.draw(window);
