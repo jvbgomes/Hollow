@@ -20,6 +20,7 @@
 
 enum class GameState {
     Menu,
+    Intro,
     Playing,
     Paused,
     Victory,
@@ -45,6 +46,11 @@ private:
     bool  m_hallShadowsSpawned = false;
     float m_bossGrowlCooldown  = 0.f;
     bool  m_bossWasNearby      = false;
+
+    sf::Font m_cinzel;
+    int   m_introPhase     = 1;
+    float m_introOverlay   = 1.f;
+    bool  m_introFadingOut = false;
 
     std::vector<Enemy*>     enemies;
     std::vector<NPC*>       npcs;
@@ -134,10 +140,8 @@ private:
 
     enum class PauseOption { Continue, Restart, Quit };
     PauseOption pauseOption = PauseOption::Continue;
-    bool pauseConfirmRestart = false; 
+    bool pauseConfirmRestart = false;
     bool keyEscPressed     = false;
-    enum class MenuState { Main, CharacterSelect };
-    MenuState currentMenuState;
     int mainMenuOption;
     int characterOption;
     int selectedSkin;
@@ -164,6 +168,8 @@ private:
 
     void drawVignette(sf::Color tint);
     void renderMenu();
+    void updateIntro(float dt);
+    void renderIntro();
     void renderPlaying();
     void updatePaused(float dt);
     void renderPaused();

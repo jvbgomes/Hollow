@@ -20,7 +20,6 @@ Game::Game()
       keyEnterPressed(false),
       keyUpPressed(false),
       keyDownPressed(false),
-      currentMenuState(MenuState::Main),
       mainMenuOption(0),
       characterOption(0),
       selectedSkin(0)
@@ -31,21 +30,23 @@ Game::Game()
 
     audio.playMusic(MusicTrack::Menu);
 
-    dialogueBox.loadFont("assets/Arial.ttf");
-    eventQueue.loadFont("assets/Arial.ttf");
-    pageReader.loadFont("assets/Arial.ttf");
+    dialogueBox.loadFont("assets/fonts/Arial.ttf");
+    eventQueue.loadFont("assets/fonts/Arial.ttf");
+    pageReader.loadFont("assets/fonts/Arial.ttf");
 
     sf::Image img;
     img.create(32, 32, sf::Color(150, 150, 150));
     placeholderTexture.loadFromImage(img);
 
-    font.loadFromFile("assets/Arial.ttf");
+    font.loadFromFile("assets/fonts/Arial.ttf");
+    m_cinzel.loadFromFile("assets/fonts/Cinzel.ttf");
 
-    titleText.setFont(font);
+    titleText.setFont(m_cinzel);
     titleText.setString("HOLLOW");
-    titleText.setCharacterSize(72);
-    titleText.setFillColor(sf::Color(100, 100, 100, 200));
-    titleText.setPosition(400.f - titleText.getGlobalBounds().width / 2.f, 150.f);
+    titleText.setCharacterSize(86);
+    titleText.setLetterSpacing(3.f);
+    titleText.setFillColor(sf::Color(120, 122, 132, 210));
+    titleText.setPosition(400.f - titleText.getGlobalBounds().width / 2.f, 120.f);
 
     subtitleText.setFont(font);
     subtitleText.setCharacterSize(22);
@@ -354,9 +355,8 @@ void Game::resetGame() {
     dialogueBox.close();
     pageReader.close();
 
-    currentMenuState = MenuState::Main;
-    mainMenuOption   = 0;
-    characterOption  = 0;
+    mainMenuOption  = 0;
+    characterOption = 0;
 
     // loadRoom limpa entidades, carrega mapa e popula o cômodo
     loadRoom("vestibulo", {116.f, 116.f});
@@ -404,61 +404,39 @@ void Game::update(float dt) {
                 }
             }
 
-            if (currentMenuState == MenuState::Main) {
-               // mainMenuOption: 0 = Adentrar, 1 = Escolher Investigador, 2 = Sair
-                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-                    && !keyUpPressed) {
-                    mainMenuOption = (mainMenuOption == 0) ? 2 : mainMenuOption - 1;
-                    keyUpPressed = true;
-                }
-                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-                    keyUpPressed = false;
-
-                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-                    && !keyDownPressed) {
-                    mainMenuOption = (mainMenuOption == 2) ? 0 : mainMenuOption + 1;
-                    keyDownPressed = true;
-                }
-                if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-                    keyDownPressed = false;
-
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
-                    if (mainMenuOption == 0) {
-                        if (selectedSkin == 1)
-                            player.load("assets/maps/sprites/player/player_f.png");
-                        state = GameState::Playing;
-                        audio.playMusic(MusicTrack::Explore);
-                    } else if (mainMenuOption == 1) {
-                        currentMenuState = MenuState::CharacterSelect;
-                    } else {
-                        window.close();   // Sair do jogo
-                    }
-                    keyEnterPressed = true;
-                }
-            } else if (currentMenuState == MenuState::CharacterSelect) {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-                    characterOption = 0;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-                    characterOption = 1;
-                }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                    characterOption = 2;
-                }
-                if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && characterOption == 2) {
-                    characterOption = 0;
-                }
-
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
-                    if (characterOption == 2) {
-                        currentMenuState = MenuState::Main;
-                    } else {
-                        selectedSkin = characterOption;
-                        currentMenuState = MenuState::Main;
-                    }
-                    keyEnterPressed = true;
-                }
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)) && !keyUpPressed) {
+                mainMenuOption = (mainMenuOption == 0) ? 1 : 0;
+                keyUpPressed = true;
             }
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+                keyUpPressed = false;
+
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) && !keyDownPressed) {
+                mainMenuOption = (mainMenuOption == 1) ? 0 : 1;
+                keyDownPressed = true;
+            }
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                keyDownPressed = false;
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+                if (mainMenuOption == 0) {
+                    m_introPhase     = 1;
+                    m_introOverlay   = 1.f;
+                    m_introFadingOut = false;
+                    characterOption  = 0;
+                    keyUpPressed     = false;
+                    keyDownPressed   = false;
+                    state = GameState::Intro;
+                    audio.playMusic(MusicTrack::Intro);
+                } else {
+                    window.close();
+                }
+                keyEnterPressed = true;
+            }
+            break;
+
+        case GameState::Intro:
+            updateIntro(dt);
             break;
 
         case GameState::Playing:
@@ -694,9 +672,8 @@ void Game::updatePaused(float dt) {
                     pauseConfirmRestart = true;   // abre a confirmação
                     break;
                 case PauseOption::Quit:
-                    resetGame();  
+                    resetGame();
                     state = GameState::Menu;
-                    currentMenuState = MenuState::Main;
                     mainMenuOption = 0;
                     audio.playMusic(MusicTrack::Menu);
                     break;
@@ -1012,6 +989,7 @@ void Game::render() {
 
     switch (state) {
         case GameState::Menu:     renderMenu();     break;
+        case GameState::Intro:    renderIntro();    break;
         case GameState::Playing:  renderPlaying();  break;
         case GameState::Paused:
             renderPlaying();
@@ -1044,194 +1022,315 @@ void Game::drawVignette(sf::Color tint) {
 
 
 void Game::renderMenu() {
-
+    // Partículas flutuantes
     for (const auto& p : dustParticles) {
-        sf::CircleShape dot(1.5f);
+        sf::CircleShape dot(1.3f);
         dot.setPosition(p.position);
-        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.4f)));
+        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.38f)));
         window.draw(dot);
     }
- 
-    if (currentMenuState == MenuState::Main) {
-        
-        sf::Text titleGlow = titleText;
-        titleGlow.setFillColor(sf::Color(60, 70, 90, 60));
-        titleGlow.move(0.f, 4.f);
-        window.draw(titleGlow);
-        window.draw(titleText);
 
-        float lineY = titleText.getPosition().y + titleText.getGlobalBounds().height + 18.f;
-        sf::RectangleShape line(sf::Vector2f(180.f, 2.f));
-        line.setPosition(400.f - 90.f, lineY);
-        line.setFillColor(sf::Color(90, 90, 100, 150));
-        window.draw(line);
+    // Título HOLLOW — sombra + texto principal com flicker
+    float flicker = 0.92f + 0.08f * std::sin(flickerTimer * 0.7f);
+    sf::Text titleShadow = titleText;
+    titleShadow.move(0.f, 5.f);
+    titleShadow.setFillColor(sf::Color(40, 50, 65, 70));
+    window.draw(titleShadow);
+    sf::Text titleCopy = titleText;
+    titleCopy.setFillColor(sf::Color(120, 122, 132, static_cast<sf::Uint8>(210.f * flicker)));
+    window.draw(titleCopy);
 
-        float pulse = 0.6f + 0.4f * std::sin(flickerTimer * 3.f);
-        sf::Uint8 selAlpha   = static_cast<sf::Uint8>(200 + 55 * pulse);
-        sf::Color selColor (235, 235, 245, selAlpha);
-        sf::Color idleColor( 80,  80,  90, 200);
+    // Linha separadora
+    float lineY = titleText.getPosition().y + titleText.getGlobalBounds().height + 14.f;
+    sf::RectangleShape sep(sf::Vector2f(200.f, 2.f));
+    sep.setPosition(400.f - 100.f, lineY);
+    sep.setFillColor(sf::Color(90, 90, 100, 140));
+    window.draw(sep);
 
-        sf::Text optPlay, optSelect, optQuit;
-        optPlay.setFont(font);
-        optSelect.setFont(font);
-        optQuit.setFont(font);
-        optPlay.setCharacterSize(24);
-        optSelect.setCharacterSize(24);
-        optQuit.setCharacterSize(24);
+    // Opções de menu
+    float pulse = 0.55f + 0.45f * std::sin(flickerTimer * 3.f);
+    sf::Uint8 selAlpha = static_cast<sf::Uint8>(200 + 55 * pulse);
 
-        sf::Color quitSelColor(235, 150, 150, selAlpha);
+    struct MenuItem { const char* label; int idx; sf::Color selCol; };
+    MenuItem items[] = {
+        { "ADENTRAR A MANS\xc3\x83O", 0, sf::Color(235, 235, 245, selAlpha) },
+        { "SAIR",                      1, sf::Color(236, 155, 155, selAlpha) }
+    };
 
-        optPlay.setString  (mainMenuOption == 0 ? "> ADENTRAR A MANSAO <" : "  ADENTRAR A MANSAO  ");
-        optPlay.setFillColor(mainMenuOption == 0 ? selColor : idleColor);
+    float optY = lineY + 46.f;
+    for (const auto& item : items) {
+        bool sel = (mainMenuOption == item.idx);
 
-        optSelect.setString(mainMenuOption == 1 ? "> ESCOLHER INVESTIGADOR <" : "  ESCOLHER INVESTIGADOR  ");
-        optSelect.setFillColor(mainMenuOption == 1 ? selColor : idleColor);
+        sf::Text opt;
+        opt.setFont(m_cinzel);
+        opt.setCharacterSize(20);
+        opt.setLetterSpacing(2.0f);
+        std::string ls = item.label;
+        opt.setString(sf::String::fromUtf8(ls.begin(), ls.end()));
+        opt.setFillColor(sel ? item.selCol : sf::Color(120, 120, 132, 190));
+        float ox = 400.f - opt.getGlobalBounds().width / 2.f;
+        opt.setPosition(ox, optY);
+        window.draw(opt);
 
-        optQuit.setString  (mainMenuOption == 2 ? "> SAIR <" : "  SAIR  ");
-        optQuit.setFillColor(mainMenuOption == 2 ? quitSelColor : idleColor);
-
-        optPlay.setPosition(400.f - optPlay.getGlobalBounds().width / 2.f, 320.f);
-        optSelect.setPosition(400.f - optSelect.getGlobalBounds().width / 2.f, 365.f);
-        optQuit.setPosition(400.f - optQuit.getGlobalBounds().width / 2.f, 410.f);
-
-        window.draw(optPlay);
-        window.draw(optSelect);
-        window.draw(optQuit);
-
-        // Dica de controles
-        sf::Text hint;
-        hint.setFont(font);
-        hint.setCharacterSize(13);
-        hint.setFillColor(sf::Color(70, 72, 80));
-        hint.setString("W/S move   ENTER confirma");
-        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 465.f);
-        window.draw(hint);
- 
-    } else {
-        sf::Text smallTitle;
-        smallTitle.setFont(font);
-        smallTitle.setCharacterSize(28);
-        smallTitle.setFillColor(sf::Color(110, 110, 120, 200));
-        smallTitle.setStyle(sf::Text::Bold);
-        smallTitle.setString("HOLLOW");
-        smallTitle.setPosition(400.f - smallTitle.getGlobalBounds().width / 2.f, 70.f);
-        window.draw(smallTitle);
- 
-        sf::Text screenLabel;
-        screenLabel.setFont(font);
-        screenLabel.setCharacterSize(18);
-        screenLabel.setFillColor(sf::Color(150, 150, 160));
-        screenLabel.setString("ESCOLHA SEU INVESTIGADOR");
-        screenLabel.setPosition(400.f - screenLabel.getGlobalBounds().width / 2.f, 120.f);
-        window.draw(screenLabel);
- 
-        // linha do cabeçalho
-        sf::RectangleShape headerLine(sf::Vector2f(180.f, 2.f));
-        headerLine.setPosition(400.f - 90.f, 155.f);
-        headerLine.setFillColor(sf::Color(90, 90, 100, 150));
-        window.draw(headerLine);
- 
-        const float cardW       = 170.f;
-        const float cardH       = 230.f;
-        const float cardY       = 195.f;
-        const float boyCardX    = 250.f - cardW / 2.f;
-        const float girlCardX   = 550.f - cardW / 2.f;
-        const float spriteScale = 4.2f;
-        const float spriteY     = cardY + 45.f;
-        const float nameY       = cardY + cardH - 40.f;
- 
-        auto drawCard = [&](float cx, bool selected, sf::Color accent) {
-            sf::RectangleShape card(sf::Vector2f(cardW, cardH));
-            card.setPosition(cx, cardY);
-            card.setFillColor(selected ? sf::Color(accent.r, accent.g, accent.b, 22)
-                                       : sf::Color(255, 255, 255, 6));
-            card.setOutlineThickness(selected ? 2.f : 1.f);
-            card.setOutlineColor(selected ? sf::Color(accent.r, accent.g, accent.b, 220)
-                                          : sf::Color(70, 70, 78, 140));
-            window.draw(card);
- 
-            // "chão" do personagem
-            sf::CircleShape shadow(28.f, 24);
-            shadow.setScale(1.f, 0.35f);
-            shadow.setFillColor(sf::Color(0, 0, 0, selected ? 90 : 60));
-            shadow.setPosition(cx + cardW / 2.f - 28.f, cardY + cardH - 56.f);
-            window.draw(shadow);
-        };
- 
-        drawCard(boyCardX,  characterOption == 0, sf::Color(120, 160, 230));
-        drawCard(girlCardX, characterOption == 1, sf::Color(230, 140, 170));
- 
-        sf::Texture texBoy, texGirl;
-        if (texBoy.loadFromFile("assets/maps/sprites/player/player_m.png") &&
-            texGirl.loadFromFile("assets/maps/sprites/player/player_f.png")) {
- 
-            sf::Sprite spriteBoy(texBoy);
-            spriteBoy.setTextureRect(sf::IntRect(16, 0, 16, 24));
-            spriteBoy.setScale(spriteScale, spriteScale);
-            spriteBoy.setPosition(250.f - spriteBoy.getGlobalBounds().width / 2.f, spriteY);
- 
-            sf::Sprite spriteGirl(texGirl);
-            spriteGirl.setTextureRect(sf::IntRect(16, 0, 16, 24));
-            spriteGirl.setScale(spriteScale, spriteScale);
-            spriteGirl.setPosition(550.f - spriteGirl.getGlobalBounds().width / 2.f, spriteY);
- 
-            // personagem não selecionado fica um pouco apagado
-            if (characterOption != 0) spriteBoy.setColor(sf::Color(150, 150, 150, 180));
-            if (characterOption != 1) spriteGirl.setColor(sf::Color(150, 150, 150, 180));
- 
-            window.draw(spriteBoy);
-            window.draw(spriteGirl);
+        if (sel) {
+            sf::Text arr;
+            arr.setFont(font);
+            arr.setCharacterSize(20);
+            arr.setFillColor(item.selCol);
+            std::string la = "\xe2\x80\xba", ra = "\xe2\x80\xb9";
+            arr.setString(sf::String::fromUtf8(la.begin(), la.end()));
+            arr.setPosition(ox - arr.getGlobalBounds().width - 10.f, optY + 1.f);
+            window.draw(arr);
+            arr.setString(sf::String::fromUtf8(ra.begin(), ra.end()));
+            arr.setPosition(ox + opt.getGlobalBounds().width + 10.f, optY + 1.f);
+            window.draw(arr);
         }
- 
-        sf::Text skinBoyText, skinGirlText;
-        skinBoyText.setFont(font);
-        skinGirlText.setFont(font);
-        skinBoyText.setCharacterSize(19);
-        skinGirlText.setCharacterSize(19);
- 
-        skinBoyText.setString(characterOption == 0 ? "> JOAO <" : "JOAO");
-        skinBoyText.setFillColor(characterOption == 0 ? sf::Color(190, 210, 255)
-                                                        : sf::Color(95, 95, 100));
- 
-        skinGirlText.setString(characterOption == 1 ? "> RADLA <" : "RADLA");
-        skinGirlText.setFillColor(characterOption == 1 ? sf::Color(255, 195, 215)
-                                                          : sf::Color(95, 95, 100));
- 
-        skinBoyText.setPosition(250.f - skinBoyText.getGlobalBounds().width / 2.f, nameY);
-        skinGirlText.setPosition(550.f - skinGirlText.getGlobalBounds().width / 2.f, nameY);
-        window.draw(skinBoyText);
-        window.draw(skinGirlText);
- 
-        sf::Text backToMenuText;
-        backToMenuText.setFont(font);
-        backToMenuText.setCharacterSize(20);
-        bool backSelected = (characterOption == 2);
-        backToMenuText.setString(backSelected ? "> VOLTAR <" : "VOLTAR");
-        backToMenuText.setFillColor(backSelected ? sf::Color::White
-                                                  : sf::Color(80, 80, 88));
-        backToMenuText.setPosition(400.f - backToMenuText.getGlobalBounds().width / 2.f, 495.f);
-        window.draw(backToMenuText);
- 
-        sf::Text hint;
-        hint.setFont(font);
-        hint.setCharacterSize(13);
-        hint.setFillColor(sf::Color(65, 67, 75));
-        hint.setString("A/D escolhe   S desce para Voltar   ENTER confirma");
-        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 528.f);
-        window.draw(hint);
+
+        optY += 46.f;
     }
- 
-    sf::Text creditsText;
-    creditsText.setFont(font);
-    creditsText.setCharacterSize(12);
-    creditsText.setFillColor(sf::Color(40, 42, 48));
-    creditsText.setString("Desenvolvido por Joao V. & Radla O. - LP1 UFRN");
-    creditsText.setPosition(400.f - creditsText.getGlobalBounds().width / 2.f, 575.f);
-    window.draw(creditsText);
- 
+
+    // Dica de controles
+    sf::Text hint;
+    hint.setFont(font);
+    hint.setCharacterSize(13);
+    hint.setFillColor(sf::Color(70, 72, 80, 180));
+    std::string hs = "W / S  mover   \xc2\xb7   ENTER  confirmar";
+    hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
+    hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 430.f);
+    window.draw(hint);
+
+    // Rodapé
+    sf::Text footer;
+    footer.setFont(font);
+    footer.setCharacterSize(12);
+    footer.setFillColor(sf::Color(52, 55, 63, 180));
+    std::string fs = "MANS\xc3\x83O VOSS \xc2\xb7 1987";
+    footer.setString(sf::String::fromUtf8(fs.begin(), fs.end()));
+    footer.setPosition(400.f - footer.getGlobalBounds().width / 2.f, 568.f);
+    window.draw(footer);
+
     drawVignette(sf::Color::Black);
 }
- 
+
+void Game::updateIntro(float dt) {
+    constexpr float FADE = 0.55f;
+
+    flickerTimer += dt;
+    for (auto& p : dustParticles) {
+        p.position.y -= p.speed * dt;
+        p.position.x += std::sin(flickerTimer * p.oscillationSpeed) * 5.f * dt;
+        if (p.position.y < -10.f) {
+            p.position.y = 610.f;
+            p.position.x = std::rand() % 800;
+        }
+    }
+
+    if (!m_introFadingOut) {
+        if (m_introOverlay > 0.f) {
+            m_introOverlay -= dt / FADE;
+            if (m_introOverlay < 0.f) m_introOverlay = 0.f;
+        }
+
+        if (m_introPhase <= 5 && m_introOverlay <= 0.f) {
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) ||
+                 sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && !keyEnterPressed) {
+                m_introFadingOut = true;
+                keyEnterPressed  = true;
+            }
+        }
+
+        if (m_introPhase == 6 && m_introOverlay <= 0.f) {
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
+                 sf::Keyboard::isKeyPressed(sf::Keyboard::A)) && !keyUpPressed) {
+                characterOption = 0;
+                keyUpPressed    = true;
+            }
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Left) &&
+                !sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+                keyUpPressed = false;
+
+            if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right) ||
+                 sf::Keyboard::isKeyPressed(sf::Keyboard::D)) && !keyDownPressed) {
+                characterOption = 1;
+                keyDownPressed  = true;
+            }
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Right) &&
+                !sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+                keyDownPressed = false;
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+                selectedSkin     = characterOption;
+                m_introFadingOut = true;
+                keyEnterPressed  = true;
+            }
+        }
+    } else {
+        m_introOverlay += dt / FADE;
+        if (m_introOverlay >= 1.f) {
+            m_introOverlay   = 1.f;
+            m_introFadingOut = false;
+            m_introPhase++;
+
+            if (m_introPhase > 6) {
+                player.load(selectedSkin == 1 ? "assets/maps/sprites/player/player_f.png"
+                                              : "assets/maps/sprites/player/player_m.png");
+                state = GameState::Playing;
+                audio.playMusic(MusicTrack::Explore);
+            }
+        }
+    }
+
+    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) &&
+        !sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+        keyEnterPressed = false;
+}
+
+void Game::renderIntro() {
+    for (const auto& p : dustParticles) {
+        sf::CircleShape dot(1.2f);
+        dot.setPosition(p.position);
+        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.32f)));
+        window.draw(dot);
+    }
+
+    struct IntroPhaseText { const char* main; const char* sub; };
+    static const IntroPhaseText phases[] = {
+        {
+            "Em dois meses, tr\xc3\xaas pesquisadores\nentraram na Mans\xc3\xa3o Voss.",
+            "Nenhum deles voltou."
+        },
+        {
+            "O munic\xc3\xadpio te enviou para\ndescobrir o que aconteceu.",
+            "Catalogar o acervo. Encontrar os que sumiram."
+        },
+        {
+            "A casa surge entre os pinheiros \xe2\x80\x94\nvelha, im\xc3\xb3vel, atenta.",
+            "Erguida em 1891 sobre algo que jamais\ndeveria ter sido perturbado."
+        },
+        {
+            "Voc\xc3\xaa empurra a porta. O ar l\xc3\xa1 dentro\n\xc3\xa9 frio como pedra.",
+            "Atr\xc3\xa1s de voc\xc3\xaa, o trinco range. N\xc3\xa3o foi o vento."
+        },
+        {
+            "No escuro, uma voz repete baixinho:",
+            "\xe2\x80\x9c" "ela n\xc3\xa3o dorme\xe2\x80\xa6 ela n\xc3\xa3o dorme\xe2\x80\xa6\xe2\x80\x9d"
+        }
+    };
+
+    if (m_introPhase >= 1 && m_introPhase <= 5) {
+        const auto& t = phases[m_introPhase - 1];
+
+        sf::Text mainTxt;
+        mainTxt.setFont(font);
+        mainTxt.setCharacterSize(22);
+        mainTxt.setFillColor(sf::Color(196, 199, 207, 255));
+        std::string ms = t.main;
+        mainTxt.setString(sf::String::fromUtf8(ms.begin(), ms.end()));
+        mainTxt.setPosition(400.f - mainTxt.getGlobalBounds().width / 2.f,
+                            240.f - mainTxt.getGlobalBounds().height);
+        window.draw(mainTxt);
+
+        sf::Text subTxt;
+        subTxt.setFont(font);
+        subTxt.setCharacterSize(18);
+        subTxt.setStyle(sf::Text::Italic);
+        subTxt.setFillColor(sf::Color(128, 131, 140, 210));
+        std::string ss = t.sub;
+        subTxt.setString(sf::String::fromUtf8(ss.begin(), ss.end()));
+        subTxt.setPosition(400.f - subTxt.getGlobalBounds().width / 2.f, 280.f);
+        window.draw(subTxt);
+
+        float hpulse = 0.4f + 0.6f * std::sin(flickerTimer * 2.1f);
+        sf::Text hint;
+        hint.setFont(font);
+        hint.setCharacterSize(14);
+        hint.setFillColor(sf::Color(174, 177, 186, static_cast<sf::Uint8>(60 + 140 * hpulse)));
+        std::string hs = "continuar \xe2\x96\xb8";
+        hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
+        hint.setPosition(800.f - hint.getGlobalBounds().width - 22.f, 545.f);
+        window.draw(hint);
+    }
+
+    if (m_introPhase == 6) {
+        sf::Text selTitle;
+        selTitle.setFont(m_cinzel);
+        selTitle.setCharacterSize(20);
+        selTitle.setLetterSpacing(2.2f);
+        selTitle.setFillColor(sf::Color(157, 160, 170, 210));
+        std::string st = "ESCOLHA SEU INVESTIGADOR";
+        selTitle.setString(sf::String::fromUtf8(st.begin(), st.end()));
+        selTitle.setPosition(400.f - selTitle.getGlobalBounds().width / 2.f, 90.f);
+        window.draw(selTitle);
+
+        sf::RectangleShape ln(sf::Vector2f(180.f, 2.f));
+        ln.setPosition(400.f - 90.f, 130.f);
+        ln.setFillColor(sf::Color(90, 90, 100, 130));
+        window.draw(ln);
+
+        const float cW = 180.f, cH = 240.f, cY = 155.f;
+
+        auto drawCard = [&](float cx, int idx, sf::Color accent) {
+            bool sel = (characterOption == idx);
+            sf::RectangleShape card(sf::Vector2f(cW, cH));
+            card.setPosition(cx, cY);
+            card.setFillColor(sel ? sf::Color(accent.r, accent.g, accent.b, 22)
+                                  : sf::Color(255, 255, 255, 6));
+            card.setOutlineThickness(sel ? 2.f : 1.f);
+            card.setOutlineColor(sel ? sf::Color(accent.r, accent.g, accent.b, 220)
+                                     : sf::Color(70, 72, 82, 140));
+            window.draw(card);
+        };
+        drawCard(250.f - cW / 2.f, 0, sf::Color(120, 160, 230));
+        drawCard(550.f - cW / 2.f, 1, sf::Color(230, 140, 170));
+
+        sf::Texture texM, texF;
+        if (texM.loadFromFile("assets/maps/sprites/player/player_m.png") &&
+            texF.loadFromFile("assets/maps/sprites/player/player_f.png")) {
+            auto drawSprite = [&](sf::Texture& tex, float cx, int idx) {
+                sf::Sprite sp(tex);
+                sp.setTextureRect(sf::IntRect(16, 0, 16, 24));
+                sp.setScale(4.5f, 4.5f);
+                sp.setPosition(cx - sp.getGlobalBounds().width / 2.f, cY + 28.f);
+                if (characterOption != idx) sp.setColor(sf::Color(150, 150, 150, 170));
+                window.draw(sp);
+            };
+            drawSprite(texM, 250.f, 0);
+            drawSprite(texF, 550.f, 1);
+        }
+
+        auto drawName = [&](const char* nm, float cx, int idx, sf::Color accent) {
+            sf::Text t;
+            t.setFont(m_cinzel);
+            t.setCharacterSize(19);
+            t.setLetterSpacing(1.7f);
+            std::string s = nm;
+            t.setString(sf::String::fromUtf8(s.begin(), s.end()));
+            t.setFillColor(characterOption == idx ? sf::Color(accent.r, accent.g, accent.b, 255)
+                                                   : sf::Color(114, 115, 125, 190));
+            t.setPosition(cx - t.getGlobalBounds().width / 2.f, cY + cH - 44.f);
+            window.draw(t);
+        };
+        drawName("JOAO",  250.f, 0, sf::Color(207, 224, 255));
+        drawName("RADLA", 550.f, 1, sf::Color(255, 210, 227));
+
+        sf::Text hint;
+        hint.setFont(font);
+        hint.setCharacterSize(13);
+        hint.setFillColor(sf::Color(93, 96, 105, 190));
+        std::string hs = "\xe2\x86\x90 \xe2\x86\x92  escolher    \xc2\xb7    ENTER  confirmar";
+        hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
+        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 448.f);
+        window.draw(hint);
+    }
+
+    if (m_introOverlay > 0.f) {
+        sf::RectangleShape overlay(sf::Vector2f(800.f, 600.f));
+        overlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(m_introOverlay * 255.f)));
+        window.draw(overlay);
+    }
+
+    drawVignette(sf::Color::Black);
+}
 
 void Game::renderPlaying() {
     window.clear(sf::Color(0, 0, 0));
