@@ -293,7 +293,7 @@ void Game::setupHallPrincipal() {
     // Passagem esquerda (cols 0, rows 4-5) → quarto da criança
     transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
     // Passagem direita (col 25, rows 4-5) → biblioteca
-    transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 136.f}, true });
+    transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -340,8 +340,8 @@ void Game::setupQuartoCrianca() {
 }
 
 void Game::setupBiblioteca() {
-    // Saída esquerda → hall principal (col 0-1, rows 5-9 do mapa)
-    transitions.push_back({ {0.f, 78.f, 20.f, 84.f}, "hall_principal", {392.f, 76.f}, true });
+    // Saída esquerda → hall principal (col 0, rows 10-14 do mapa expandido 52x21)
+    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
 }
 
 void Game::resetGame() {
