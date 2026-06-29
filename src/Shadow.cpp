@@ -2,8 +2,8 @@
 #include "Map.hpp"
 #include <cmath>
 
-Shadow::Shadow(float x, float y) : Enemy(x, y, 35.f, 1, 150.f) {
-    loadTextures("assets/sprites/enemies/shadow/", "shadow");
+Shadow::Shadow(float x, float y) : Enemy(x, y, 68.f, 1, 9999.f) {
+    loadTextures("assets/maps/sprites/enemies/shadow/", "shadow");
     float scale = 32.f / 76.f;
     sprite.setScale(scale, scale);
     sprite.setOrigin(38.f, 38.f);

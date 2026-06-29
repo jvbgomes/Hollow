@@ -9,7 +9,7 @@ Projectile::Projectile(sf::Vector2f startPos, sf::Vector2f direction)
     if (length > 0.f)
         velocity = (direction / length) * 280.f;
 
-    if (texture.loadFromFile("assets/sprites/items_lamp.png")) {
+    if (texture.loadFromFile("assets/maps/sprites/items_lamp.png")) {
         sprite.setTexture(texture);
         sprite.setScale(0.5f, 0.5f); // 32x32 → 16x16 em voo
     } else {

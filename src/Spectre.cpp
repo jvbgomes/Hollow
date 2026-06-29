@@ -6,7 +6,7 @@ static constexpr float PI = 3.14159265f;
 
 Spectre::Spectre(float x, float y) : Enemy(x, y, 75.f, 2, VIEW_RADIUS),
     m_stuckPos({x, y}) {
-    loadTextures("assets/sprites/enemies/spectre/", "spectre");
+    loadTextures("assets/maps/sprites/enemies/spectre/", "spectre");
     float scale = 32.f / 52.f;
     sprite.setScale(scale, scale);
     sprite.setOrigin(26.f, 26.f);

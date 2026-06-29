@@ -88,6 +88,11 @@ void DialogueBox::startOptions(const std::string& npcName, const sf::Texture* te
 }
 
 void DialogueBox::returnToOptions() {
+    if (m_savedOpts.empty()) {
+        m_phase = Phase::None;
+        return;
+    }
+
     m_phase    = Phase::Options;
     m_cursor   = 0;
     m_menuOpts = m_savedOpts;
