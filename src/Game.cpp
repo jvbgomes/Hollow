@@ -347,9 +347,9 @@ void Game::setupBiblioteca() {
     npcs.push_back(eleanor);
 
     // Inimigos
-    enemies.push_back(new Shadow(400.f, 200.f));
-    enemies.push_back(new Shadow(600.f, 160.f));
-    enemies.push_back(new Shadow(500.f, 280.f));
+    enemies.push_back(new Spectre(400.f, 200.f));
+    enemies.push_back(new Spectre(600.f, 160.f));
+    enemies.push_back(new Spectre(500.f, 280.f));
 
     // Página do diário
     if (pageItemTex.getSize().x == 0)
