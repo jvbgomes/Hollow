@@ -547,6 +547,7 @@ void Game::resetGame() {
 
     dialogueBox.close();
     pageReader.close();
+    m_bossSpawned = false;
 
     mainMenuOption  = 0;
     characterOption = 0;
@@ -971,11 +972,12 @@ void Game::checkItemCollection() {
             case ItemType::Page: {
                 player.addPage();
                 audio.playSfx(SfxId::PageCollect);
-                if (player.getDiaryPages() == totalPages) {
+                if (m_currentRoom == "area_externa" && !m_bossSpawned) {
+                    m_bossSpawned = true;
                     sf::Vector2f bp = player.getPosition();
-                    bp.x += 200.f;
+                    bp.x -= 300.f;
                     enemies.push_back(new Boss(bp.x, bp.y));
-                    eventQueue.enqueue("Algo acordou nas profundezas...");
+                    eventQueue.enqueue("Algo despertou. Fuja agora.");
                     audio.playMusic(MusicTrack::Boss);
                 }
                 {
