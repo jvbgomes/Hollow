@@ -25,6 +25,7 @@ public:
     std::string        getName()         const;
     const sf::Texture* getTexture()      const;
     sf::IntRect        getPortraitRect() const;
+    void               setColor(sf::Color c);
 
 private:
     struct Option {

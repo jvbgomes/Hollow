@@ -51,6 +51,8 @@ private:
     int   m_introPhase     = 1;
     float m_introOverlay   = 1.f;
     bool  m_introFadingOut = false;
+    float m_gateProgress   = 0.f;
+    float m_gateTimer      = 0.f;
 
     std::vector<Enemy*>     enemies;
     std::vector<NPC*>       npcs;

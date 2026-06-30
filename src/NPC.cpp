@@ -55,3 +55,4 @@ bool NPC::isPlayerNearby(sf::Vector2f pos) const {
 std::string        NPC::getName()         const { return name; }
 const sf::Texture* NPC::getTexture()      const { return m_texPtr; }
 sf::IntRect        NPC::getPortraitRect() const { return m_portraitRect; }
+void               NPC::setColor(sf::Color c)   { sprite.setColor(c); }

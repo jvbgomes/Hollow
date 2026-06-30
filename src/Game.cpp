@@ -112,28 +112,9 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
 void Game::setupLevel() {
     enemies.push_back(new Spectre(116.f, 216.f));
 
-    npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
     npcTexThomas .loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
     npcTexCrianca.loadFromFile("assets/maps/sprites/npcs/crianca/crianca.png");
     sf::IntRect npcRect(16, 0, 16, 24);
-
-    NPC* eleanor = new NPC("Eleanor", 266.f, 96.f, npcTexEleanor, npcRect);
-    eleanor->addOption("Onde estão as páginas do diário?", {
-        {"Você",    "Eleanor, sabe onde estão as páginas do diário?",                         true},
-        {"Eleanor", "As páginas estão espalhadas pela mansão inteira...",                     false},
-        {"Eleanor", "Uma no escritório, outra no jardim de inverno. A última não sei dizer.", false},
-    });
-    eleanor->addOption("O que aconteceu aqui?", {
-        {"Você",    "O que aconteceu com esta mansão? Com você?",                             true},
-        {"Eleanor", "Viemos investigar algo que não devíamos ter perturbado.",                false},
-        {"Eleanor", "A Entidade despertou. Agora não há como voltar atrás.",                  false},
-    });
-    eleanor->addOption("Quem é a Entidade?", {
-        {"Você",    "A Entidade... você sabe o que é isso?",                                  true},
-        {"Eleanor", "Ela sempre esteve aqui. Muito antes de qualquer um de nós.",             false},
-        {"Eleanor", "Não tente entendê-la. Apenas fuja enquanto ainda pode.",                 false},
-    });
-    npcs.push_back(eleanor);
 
     NPC* thomas = new NPC("Thomas", 86.f, 216.f, npcTexThomas, npcRect);
     thomas->addOption("Onde está a chave para sair?", {
@@ -270,8 +251,8 @@ void Game::setupLevel() {
     doors.push_back({ { 16.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
     // Parede direita, tiles (20,8)-(20,9): x=320, y=128, h=32
     doors.push_back({ {320.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
-    // Passagem sul → hall principal (walk-through, sem E)
-    transitions.push_back({ {144.f, 228.f, 80.f, 28.f}, "hall_principal", {208.f, 76.f}, false });
+    // Passagem sul → hall principal (requer E)
+    transitions.push_back({ {144.f, 228.f, 80.f, 28.f}, "hall_principal", {208.f, 76.f}, true });
 
     // Fontes de luz: pos, raioBase, flickerAmt, flickerSpeed, phase
     // Candelabro esq  (tiles 9,2-4): chama no tile (9,2) → pixel (152,40)
@@ -288,7 +269,7 @@ void Game::setupLevel() {
 
 void Game::setupHallPrincipal() {
     // Transição topo → vestíbulo (player sobe pela escadaria)
-    transitions.push_back({ {192.f, 60.f, 32.f, 24.f}, "vestibulo", {176.f, 208.f}, true });
+    transitions.push_back({ {176.f, 48.f, 64.f, 32.f}, "vestibulo", {176.f, 208.f}, true });
 
     // Passagem esquerda (cols 0, rows 4-5) → quarto da criança
     transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
@@ -305,8 +286,8 @@ void Game::setupHallPrincipal() {
 }
 
 void Game::setupQuartoCrianca() {
-    // Saída direita → hall principal (cols 15-17, rows 5-8 do mapa)
-    transitions.push_back({ {255.f, 78.f, 32.f, 68.f}, "hall_principal", {24.f, 76.f}, true });
+    // Saída direita → hall principal (col 17, rows 6-9 = y=96-160)
+    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true });
 
     // Luzes: (col,row) → pixel centro = col*16, row*16
     m_lights.push_back({ {256.f,  64.f}, 50.f, 8.f, 2.1f, 0.0f });  // (16,4)
@@ -340,8 +321,57 @@ void Game::setupQuartoCrianca() {
 }
 
 void Game::setupBiblioteca() {
-    // Saída esquerda → hall principal (col 0, rows 10-14 do mapa expandido 52x21)
+    // Saída esquerda → hall principal
     transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
+
+    // Eleanor — bibliotecária fantasma
+    npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
+    sf::IntRect npcRect(16, 0, 16, 24);
+    NPC* eleanor = new NPC("Eleanor", 280.f, 168.f, npcTexEleanor, npcRect);
+    eleanor->setColor(sf::Color(180, 180, 180, 200));
+    eleanor->addOption("Onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?", {
+        {"Voc\xc3\xaa",    "Eleanor, sabe onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?",                         true},
+        {"Eleanor", "As p\xc3\xa1ginas est\xc3\xa3o espalhadas pela mans\xc3\xa3o inteira...",                     false},
+        {"Eleanor", "Uma no escrit\xc3\xb3rio, outra no jardim de inverno. A \xc3\xbaltima n\xc3\xa3o sei dizer.", false},
+    });
+    eleanor->addOption("O que aconteceu aqui?", {
+        {"Voc\xc3\xaa",    "O que aconteceu com esta mans\xc3\xa3o? Com voc\xc3\xaa?",                             true},
+        {"Eleanor", "Viemos investigar algo que n\xc3\xa3o dev\xc3" "\xad" "amos ter perturbado.",         false},
+        {"Eleanor", "A Entidade despertou. Agora n\xc3\xa3o h\xc3\xa1 como voltar atr\xc3\xa1s.",                  false},
+    });
+    eleanor->addOption("Quem \xc3\xa9 a Entidade?", {
+        {"Voc\xc3\xaa",    "A Entidade... voc\xc3\xaa sabe o que \xc3\xa9 isso?",                                  true},
+        {"Eleanor", "Ela sempre esteve aqui. Muito antes de qualquer um de n\xc3\xb3s.",             false},
+        {"Eleanor", "N\xc3\xa3o tente entend\xc3\xaa-la. Apenas fuja enquanto ainda pode.",                 false},
+    });
+    npcs.push_back(eleanor);
+
+    // Inimigos
+    enemies.push_back(new Shadow(400.f, 200.f));
+    enemies.push_back(new Shadow(600.f, 160.f));
+    enemies.push_back(new Shadow(500.f, 280.f));
+
+    // Página do diário
+    if (pageItemTex.getSize().x == 0)
+        pageItemTex.loadFromFile("assets/maps/sprites/items_page.png");
+    auto savedIt = m_presentItems.find("biblioteca");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect pageRect(0, 0, 16, 16);
+    if (itemOk({380.f, 120.f})) items.addItem(ItemType::Page, {380.f, 120.f}, pageItemTex, pageRect);
+
+    // Iluminação — coordenadas fornecidas pelo usuário
+    // Pares de tiles (tile*16+8 = centro do pixel)
+    m_lights.push_back({ {432.f,  56.f}, 70.f, 10.f, 2.2f, 0.0f }); // (26,3)+(27,3)
+    m_lights.push_back({ {432.f, 264.f}, 70.f, 10.f, 2.0f, 1.2f }); // (26,16)+(27,16)
+    m_lights.push_back({ {808.f, 120.f}, 60.f,  8.f, 2.4f, 0.5f }); // (50,7)
+    m_lights.push_back({ {808.f, 232.f}, 60.f,  8.f, 2.1f, 2.0f }); // (50,14)
+    m_lights.push_back({ {128.f,  56.f}, 65.f,  9.f, 2.3f, 0.8f }); // (7,3)+(8,3)
+    m_lights.push_back({ {144.f, 248.f}, 65.f,  9.f, 2.5f, 1.7f }); // (8,15)+(9,15)
+    // Lareira (16-17, 5-6) — chama mais quente e brilhante
+    m_lights.push_back({ {272.f,  96.f}, 90.f, 18.f, 1.8f, 3.0f });
 }
 
 void Game::resetGame() {
@@ -1139,6 +1169,12 @@ void Game::updateIntro(float dt) {
             }
         }
 
+        if (m_introPhase == 4 && m_introOverlay <= 0.f) {
+            m_gateTimer += dt;
+            if (m_gateTimer > 0.9f)
+                m_gateProgress = std::min(1.f, m_gateProgress + dt * 0.35f);
+        }
+
         if (m_introPhase == 6 && m_introOverlay <= 0.f) {
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
                  sf::Keyboard::isKeyPressed(sf::Keyboard::A)) && !keyUpPressed) {
@@ -1164,14 +1200,23 @@ void Game::updateIntro(float dt) {
                 keyEnterPressed  = true;
             }
         }
+
+        if (m_introPhase == 7 && m_introOverlay <= 0.f) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
+                m_introFadingOut = true;
+                keyEnterPressed  = true;
+            }
+        }
     } else {
         m_introOverlay += dt / FADE;
         if (m_introOverlay >= 1.f) {
             m_introOverlay   = 1.f;
             m_introFadingOut = false;
             m_introPhase++;
+            m_gateProgress   = 0.f;
+            m_gateTimer      = 0.f;
 
-            if (m_introPhase > 6) {
+            if (m_introPhase > 7) {
                 player.load(selectedSkin == 1 ? "assets/maps/sprites/player/player_f.png"
                                               : "assets/maps/sprites/player/player_m.png");
                 state = GameState::Playing;
@@ -1186,6 +1231,240 @@ void Game::updateIntro(float dt) {
 }
 
 void Game::renderIntro() {
+    const float W = 800.f, H = 600.f;
+
+    auto filledRect = [&](float x, float y, float w, float h, sf::Color c) {
+        sf::RectangleShape r({w, h});
+        r.setPosition(x, y);
+        r.setFillColor(c);
+        window.draw(r);
+    };
+    auto tri3 = [&](sf::Vector2f a, sf::Vector2f b, sf::Vector2f c2, sf::Color col) {
+        sf::ConvexShape t(3);
+        t.setPoint(0, a); t.setPoint(1, b); t.setPoint(2, c2);
+        t.setFillColor(col);
+        window.draw(t);
+    };
+
+    auto drawMansion = [&](float scale, float mtopY) {
+        float mw = 512.f * scale, mh = 336.f * scale;
+        float ml = 400.f - mw * 0.5f, mt = mtopY;
+        sf::Color mc(4, 6, 10), mb(5, 7, 11);
+        auto mr2 = [&](float rx, float ry, float rw, float rh, sf::Color c) {
+            filledRect(ml + rx, mt + ry, rw, rh, c);
+        };
+        mr2(mw*0.04f, mh*0.30f, mw*0.16f, mh*0.70f, mc);
+        tri3({ml+mw*0.12f, mt+mh*0.12f}, {ml+mw*0.24f, mt+mh*0.30f}, {ml, mt+mh*0.30f}, mc);
+        mr2(mw*0.80f, mh*0.30f, mw*0.16f, mh*0.70f, mc);
+        tri3({ml+mw*0.88f, mt+mh*0.12f}, {ml+mw, mt+mh*0.30f}, {ml+mw*0.76f, mt+mh*0.30f}, mc);
+        mr2(mw*0.20f, mh*0.40f, mw*0.60f, mh*0.60f, mb);
+        tri3({ml+mw*0.50f, mt+mh*0.16f}, {ml+mw*0.82f, mt+mh*0.40f}, {ml+mw*0.18f, mt+mh*0.40f}, mb);
+        mr2(mw*0.30f, -mh*0.04f, mw*0.04f, mh*0.22f, mc);
+        mr2(mw*0.64f, -mh*0.06f, mw*0.04f, mh*0.24f, mc);
+        mr2(mw*0.54f, -mh*0.01f, mw*0.025f, mh*0.14f, mc);
+        mr2(mw*0.43f, mh*0.74f, mw*0.14f, mh*0.26f, sf::Color(255, 150, 55, 65));
+        mr2(mw*0.462f, mh*0.80f, mw*0.076f, mh*0.20f, sf::Color(6, 4, 2));
+        float f1 = 0.55f + 0.45f * std::sin(flickerTimer * 1.1f);
+        float f2 = 0.55f + 0.45f * std::sin(flickerTimer * 1.4f + 1.2f);
+        float f3 = 0.55f + 0.45f * std::sin(flickerTimer * 0.8f + 2.8f);
+        mr2(mw*0.07f,  mh*0.40f, mw*0.07f,  mh*0.10f, sf::Color(255,178,92, sf::Uint8(200*f1)));
+        mr2(mw*0.86f,  mh*0.44f, mw*0.07f,  mh*0.10f, sf::Color(255,178,92, sf::Uint8(175*f2)));
+        mr2(mw*0.60f,  mh*0.54f, mw*0.065f, mh*0.11f, sf::Color(255,178,92, sf::Uint8(140*f3)));
+        mr2(mw*0.28f,  mh*0.52f, mw*0.065f, mh*0.11f, sf::Color(120,150,200, 50));
+        mr2(mw*0.44f,  mh*0.52f, mw*0.065f, mh*0.11f, sf::Color(120,150,200, 38));
+        mr2(mw*0.30f,  mh*0.36f, mw*0.065f, mh*0.08f, sf::Color(120,150,200, 30));
+    };
+
+    auto drawHills = [&](float horizY) {
+        float pts[][2] = {
+            {0,H},{0,horizY*0.62f},{W*0.05f,horizY*0.40f},{W*0.09f,horizY*0.57f},
+            {W*0.14f,horizY*0.32f},{W*0.20f,horizY*0.54f},{W*0.24f,horizY*0.36f},
+            {W*0.30f,horizY*0.58f},{W*0.36f,horizY*0.34f},{W*0.42f,horizY*0.56f},
+            {W*0.48f,horizY*0.28f},{W*0.54f,horizY*0.52f},{W*0.60f,horizY*0.35f},
+            {W*0.66f,horizY*0.57f},{W*0.72f,horizY*0.30f},{W*0.78f,horizY*0.55f},
+            {W*0.84f,horizY*0.38f},{W*0.90f,horizY*0.58f},{W*0.95f,horizY*0.42f},
+            {W,horizY*0.60f},{W,H}
+        };
+        sf::ConvexShape hills(21);
+        for (int i = 0; i < 21; ++i) hills.setPoint(i, {pts[i][0], pts[i][1]});
+        hills.setFillColor(sf::Color(5, 7, 12));
+        window.draw(hills);
+    };
+
+    auto drawRain = [&]() {
+        for (int i = 0; i < 80; ++i) {
+            float seed = i * 137.508f;
+            float speed = 260.f + (i % 7) * 35.f;
+            float xBase = std::fmod(seed * 3.7f, W);
+            float yBase = std::fmod(flickerTimer * speed + seed * 13.3f, H + 80.f) - 40.f;
+            sf::RectangleShape streak({1.f, 12.f + (i % 4) * 5.f});
+            streak.setOrigin(0.5f, 0.f);
+            streak.setPosition(xBase, yBase);
+            streak.setRotation(-12.f);
+            streak.setFillColor(sf::Color(140,155,175, sf::Uint8(25 + (i%5)*10)));
+            window.draw(streak);
+        }
+    };
+
+    // --- Phase 1: pure dark ---
+    if (m_introPhase == 1) {
+        filledRect(0.f, 0.f, W, H, sf::Color(7, 9, 15));
+    }
+
+    // --- Phases 2-3: mansion silhouette ---
+    if (m_introPhase == 2 || m_introPhase == 3) {
+        filledRect(0.f, 0.f, W, H, sf::Color(7, 10, 18));
+        float mr = 34.f, mx = W*0.74f, my = H*0.11f;
+        sf::CircleShape mglow(mr*1.6f);
+        mglow.setFillColor(sf::Color(150,165,200,18));
+        mglow.setPosition(mx-mr*1.6f, my-mr*1.6f);
+        window.draw(mglow);
+        sf::CircleShape moon(mr);
+        moon.setFillColor(sf::Color(216,218,226));
+        moon.setPosition(mx-mr, my-mr);
+        window.draw(moon);
+        float horizY = H * (m_introPhase == 2 ? 0.52f : 0.46f);
+        drawHills(horizY);
+        filledRect(0.f, horizY, W, H - horizY, sf::Color(4,5,9));
+        float sc = (m_introPhase == 2) ? 0.72f : 0.88f;
+        drawMansion(sc, H * (m_introPhase == 2 ? 0.22f : 0.16f));
+        if (m_introPhase == 3) {
+            float tx = 400.f - 512.f*0.88f*0.5f - 68.f;
+            filledRect(tx, H*0.42f, 9.f, H*0.44f, sf::Color(3,4,8));
+            sf::RectangleShape b1({88.f, 5.f});
+            b1.setOrigin(0.f,2.5f); b1.setPosition(tx+5.f, H*0.42f+70.f);
+            b1.setRotation(-36.f); b1.setFillColor(sf::Color(3,4,8));
+            window.draw(b1);
+            sf::RectangleShape b2({70.f, 4.f});
+            b2.setOrigin(0.f,2.f); b2.setPosition(tx+5.f, H*0.42f+130.f);
+            b2.setRotation(30.f); b2.setFillColor(sf::Color(3,4,8));
+            window.draw(b2);
+        }
+        float fogX = std::sin(flickerTimer * 0.25f) * 18.f;
+        filledRect(-50.f+fogX, H*0.72f, W+100.f, 110.f, sf::Color(120,130,150,20));
+        filledRect(-50.f-fogX, H*0.80f, W+100.f,  80.f, sf::Color(110,120,140,16));
+        drawRain();
+    }
+
+    // --- Phase 4: gate opening ---
+    if (m_introPhase == 4) {
+        filledRect(0.f, 0.f, W, H, sf::Color(7, 10, 18));
+        float mr = 28.f, mx = W*0.64f, my = H*0.11f;
+        sf::CircleShape mglow(mr*1.5f);
+        mglow.setFillColor(sf::Color(150,165,200,16));
+        mglow.setPosition(mx-mr*1.5f, my-mr*1.5f);
+        window.draw(mglow);
+        sf::CircleShape moon(mr);
+        moon.setFillColor(sf::Color(210,212,220));
+        moon.setPosition(mx-mr, my-mr);
+        window.draw(moon);
+        drawHills(H * 0.48f);
+        filledRect(0.f, H*0.48f, W, H*0.52f, sf::Color(4,5,9));
+        drawMansion(0.30f, H*0.26f);
+
+        // Moonlight beam
+        float beamW = 90.f + m_gateProgress * 120.f;
+        sf::ConvexShape beam(4);
+        beam.setPoint(0, {W*0.5f-8.f, 0.f});
+        beam.setPoint(1, {W*0.5f+8.f, 0.f});
+        beam.setPoint(2, {W*0.5f+beamW*0.5f, H});
+        beam.setPoint(3, {W*0.5f-beamW*0.5f, H});
+        beam.setFillColor(sf::Color(160,185,230,20));
+        window.draw(beam);
+
+        // Stone pillars
+        float pW = 78.f, pLeft = W*0.05f, pRight = W - pW - W*0.05f;
+        sf::Color pDark(22,25,32);
+        auto pillar = [&](float px) {
+            filledRect(px, 0.f, pW, H, pDark);
+            for (int i = 0; i < 22; ++i)
+                filledRect(px, i*28.f, pW, 2.f, sf::Color(28,31,40,100));
+            filledRect(px, 0.f, 3.f, H, sf::Color(55,60,72,70));
+            filledRect(px+pW-3.f, 0.f, 3.f, H, sf::Color(10,12,18,70));
+            filledRect(px-8.f, H*0.02f, pW+16.f, 28.f, sf::Color(42,46,56));
+            tri3({px-8.f+(pW+16.f)*0.5f, H*0.02f-22.f},
+                 {px-8.f+pW+16.f, H*0.02f},
+                 {px-8.f, H*0.02f}, sf::Color(30,33,42));
+        };
+        pillar(pLeft);
+        pillar(pRight);
+
+        // Gate bars
+        float gateL = pLeft + pW, gateCenter = W*0.5f;
+        float gateTop = H*0.08f, gateH = H*0.92f;
+        float s = 1.f - m_gateProgress;
+        float halfSpan = gateCenter - gateL;
+        float curHalf  = halfSpan * s;
+        float leftEdge = gateCenter - curHalf;
+        sf::Color barCol(11,12,18);
+        // rails
+        filledRect(leftEdge, gateTop, curHalf, 6.f, barCol);
+        filledRect(leftEdge, gateTop+gateH*0.46f, curHalf, 5.f, barCol);
+        filledRect(leftEdge, gateTop+gateH-6.f, curHalf, 6.f, barCol);
+        filledRect(gateCenter, gateTop, curHalf, 6.f, barCol);
+        filledRect(gateCenter, gateTop+gateH*0.46f, curHalf, 5.f, barCol);
+        filledRect(gateCenter, gateTop+gateH-6.f, curHalf, 6.f, barCol);
+        // vertical bars
+        for (int i = 0; i < 7; ++i) {
+            float frac = (float)i / 6.f;
+            float bw = std::max(1.f, 6.f * s);
+            filledRect(leftEdge + frac*curHalf - bw*0.5f, gateTop, bw, gateH, barCol);
+            filledRect(gateCenter + frac*curHalf - bw*0.5f, gateTop, bw, gateH, barCol);
+        }
+        // light in gap
+        if (m_gateProgress > 0.05f) {
+            float gapW = (gateCenter - gateL) * m_gateProgress * 0.9f;
+            filledRect(gateCenter - gapW, gateTop, gapW*2.f, gateH,
+                       sf::Color(160,185,230, sf::Uint8(28*m_gateProgress)));
+        }
+        drawRain();
+    }
+
+    // --- Phase 5: interior ---
+    if (m_introPhase == 5) {
+        filledRect(0.f, 0.f, W, H, sf::Color(6, 8, 14));
+        // Window
+        float wx = W*0.10f, wy = H*0.13f, ww = W*0.27f, wh = H*0.50f;
+        filledRect(wx, wy, ww, wh, sf::Color(30,45,80,200));
+        filledRect(wx+ww*0.55f, wy+wh*0.08f, ww*0.28f, ww*0.18f, sf::Color(160,175,210,50));
+        filledRect(wx-6.f, wy-6.f, ww+12.f, 6.f, sf::Color(20,22,28));
+        filledRect(wx-6.f, wy+wh, ww+12.f, 6.f, sf::Color(20,22,28));
+        filledRect(wx-6.f, wy-6.f, 6.f, wh+12.f, sf::Color(20,22,28));
+        filledRect(wx+ww, wy-6.f, 6.f, wh+12.f, sf::Color(20,22,28));
+        filledRect(wx+ww*0.5f-3.f, wy, 6.f, wh, sf::Color(20,22,28));
+        filledRect(wx, wy+wh*0.5f-3.f, ww, 6.f, sf::Color(20,22,28));
+        // Floor light
+        sf::ConvexShape fl(4);
+        fl.setPoint(0,{wx,wy+wh}); fl.setPoint(1,{wx+ww,wy+wh});
+        fl.setPoint(2,{wx+ww*1.4f,H}); fl.setPoint(3,{wx-ww*0.2f,H});
+        fl.setFillColor(sf::Color(120,145,200,18));
+        window.draw(fl);
+        // Figure
+        float fx = W*0.64f, fy = H*0.38f;
+        sf::CircleShape head(22.f);
+        head.setFillColor(sf::Color(6,7,10));
+        head.setPosition(fx-22.f, fy);
+        window.draw(head);
+        sf::ConvexShape body(4);
+        body.setPoint(0,{fx-18.f,fy+42.f}); body.setPoint(1,{fx+18.f,fy+42.f});
+        body.setPoint(2,{fx+28.f,fy+175.f}); body.setPoint(3,{fx-28.f,fy+175.f});
+        body.setFillColor(sf::Color(5,6,9));
+        window.draw(body);
+        // Candle
+        float cx2 = W*0.83f, cy2 = H*0.72f;
+        float cf = 0.7f + 0.3f * std::sin(flickerTimer * 5.7f);
+        sf::CircleShape cglow(28.f*cf);
+        cglow.setFillColor(sf::Color(255,140,30, sf::Uint8(28*cf)));
+        cglow.setPosition(cx2-28.f*cf, cy2-28.f*cf);
+        window.draw(cglow);
+        sf::CircleShape flame(7.f*cf);
+        flame.setFillColor(sf::Color(255,160,50, sf::Uint8(200*cf)));
+        flame.setPosition(cx2-7.f*cf, cy2-7.f*cf);
+        window.draw(flame);
+        filledRect(cx2-3.f, cy2, 6.f, 18.f, sf::Color(200,195,170));
+    }
+
+    // --- Dust particles (all phases) ---
     for (const auto& p : dustParticles) {
         sf::CircleShape dot(1.2f);
         dot.setPosition(p.position);
@@ -1193,6 +1472,7 @@ void Game::renderIntro() {
         window.draw(dot);
     }
 
+    // --- Phases 1-5: narrative text ---
     struct IntroPhaseText { const char* main; const char* sub; };
     static const IntroPhaseText phases[] = {
         {
@@ -1219,6 +1499,12 @@ void Game::renderIntro() {
 
     if (m_introPhase >= 1 && m_introPhase <= 5) {
         const auto& t = phases[m_introPhase - 1];
+        bool hasScene = (m_introPhase >= 2);
+        float textY = hasScene ? H - 132.f : H * 0.42f;
+        float subY  = hasScene ? H - 90.f  : H * 0.52f;
+
+        if (hasScene)
+            filledRect(0.f, H - 165.f, W, 165.f, sf::Color(0,0,0,145));
 
         sf::Text mainTxt;
         mainTxt.setFont(font);
@@ -1226,8 +1512,7 @@ void Game::renderIntro() {
         mainTxt.setFillColor(sf::Color(196, 199, 207, 255));
         std::string ms = t.main;
         mainTxt.setString(sf::String::fromUtf8(ms.begin(), ms.end()));
-        mainTxt.setPosition(400.f - mainTxt.getGlobalBounds().width / 2.f,
-                            240.f - mainTxt.getGlobalBounds().height);
+        mainTxt.setPosition(400.f - mainTxt.getGlobalBounds().width / 2.f, textY);
         window.draw(mainTxt);
 
         sf::Text subTxt;
@@ -1237,7 +1522,7 @@ void Game::renderIntro() {
         subTxt.setFillColor(sf::Color(128, 131, 140, 210));
         std::string ss = t.sub;
         subTxt.setString(sf::String::fromUtf8(ss.begin(), ss.end()));
-        subTxt.setPosition(400.f - subTxt.getGlobalBounds().width / 2.f, 280.f);
+        subTxt.setPosition(400.f - subTxt.getGlobalBounds().width / 2.f, subY);
         window.draw(subTxt);
 
         float hpulse = 0.4f + 0.6f * std::sin(flickerTimer * 2.1f);
@@ -1247,10 +1532,11 @@ void Game::renderIntro() {
         hint.setFillColor(sf::Color(174, 177, 186, static_cast<sf::Uint8>(60 + 140 * hpulse)));
         std::string hs = "continuar \xe2\x96\xb8";
         hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
-        hint.setPosition(800.f - hint.getGlobalBounds().width - 22.f, 545.f);
+        hint.setPosition(W - hint.getGlobalBounds().width - 22.f, H - 52.f);
         window.draw(hint);
     }
 
+    // --- Phase 6: character select ---
     if (m_introPhase == 6) {
         sf::Text selTitle;
         selTitle.setFont(m_cinzel);
@@ -1259,72 +1545,125 @@ void Game::renderIntro() {
         selTitle.setFillColor(sf::Color(157, 160, 170, 210));
         std::string st = "ESCOLHA SEU INVESTIGADOR";
         selTitle.setString(sf::String::fromUtf8(st.begin(), st.end()));
-        selTitle.setPosition(400.f - selTitle.getGlobalBounds().width / 2.f, 90.f);
+        selTitle.setPosition(400.f - selTitle.getGlobalBounds().width / 2.f, 68.f);
         window.draw(selTitle);
 
-        sf::RectangleShape ln(sf::Vector2f(180.f, 2.f));
-        ln.setPosition(400.f - 90.f, 130.f);
-        ln.setFillColor(sf::Color(90, 90, 100, 130));
-        window.draw(ln);
+        filledRect(400.f - 90.f, 108.f, 180.f, 2.f, sf::Color(90,90,100,130));
 
-        const float cW = 180.f, cH = 240.f, cY = 155.f;
-
-        auto drawCard = [&](float cx, int idx, sf::Color accent) {
-            bool sel = (characterOption == idx);
-            sf::RectangleShape card(sf::Vector2f(cW, cH));
-            card.setPosition(cx, cY);
-            card.setFillColor(sel ? sf::Color(accent.r, accent.g, accent.b, 22)
-                                  : sf::Color(255, 255, 255, 6));
-            card.setOutlineThickness(sel ? 2.f : 1.f);
-            card.setOutlineColor(sel ? sf::Color(accent.r, accent.g, accent.b, 220)
-                                     : sf::Color(70, 72, 82, 140));
-            window.draw(card);
-        };
-        drawCard(250.f - cW / 2.f, 0, sf::Color(120, 160, 230));
-        drawCard(550.f - cW / 2.f, 1, sf::Color(230, 140, 170));
-
+        const float cW = 155.f, cH = 255.f, cY = 128.f;
         sf::Texture texM, texF;
-        if (texM.loadFromFile("assets/maps/sprites/player/player_m.png") &&
-            texF.loadFromFile("assets/maps/sprites/player/player_f.png")) {
-            auto drawSprite = [&](sf::Texture& tex, float cx, int idx) {
+        bool loaded = texM.loadFromFile("assets/maps/sprites/player/player_m.png") &&
+                      texF.loadFromFile("assets/maps/sprites/player/player_f.png");
+
+        auto drawCard = [&](float cx, int idx, sf::Color accent,
+                             sf::Texture& tex, const char* name, const char* role) {
+            bool sel = (characterOption == idx);
+            sf::RectangleShape card({cW, cH});
+            card.setPosition(cx - cW*0.5f, cY);
+            card.setFillColor(sel ? sf::Color(accent.r,accent.g,accent.b,22)
+                                  : sf::Color(255,255,255,6));
+            card.setOutlineThickness(sel ? 2.f : 1.f);
+            card.setOutlineColor(sel ? sf::Color(accent.r,accent.g,accent.b,220)
+                                     : sf::Color(70,72,82,140));
+            window.draw(card);
+
+            if (loaded) {
                 sf::Sprite sp(tex);
                 sp.setTextureRect(sf::IntRect(16, 0, 16, 24));
-                sp.setScale(4.5f, 4.5f);
-                sp.setPosition(cx - sp.getGlobalBounds().width / 2.f, cY + 28.f);
-                if (characterOption != idx) sp.setColor(sf::Color(150, 150, 150, 170));
+                sp.setScale(5.5f, 5.5f);
+                sp.setPosition(cx - sp.getGlobalBounds().width*0.5f, cY + 22.f);
+                if (!sel) sp.setColor(sf::Color(140,140,140,160));
                 window.draw(sp);
-            };
-            drawSprite(texM, 250.f, 0);
-            drawSprite(texF, 550.f, 1);
-        }
+            }
 
-        auto drawName = [&](const char* nm, float cx, int idx, sf::Color accent) {
-            sf::Text t;
-            t.setFont(m_cinzel);
-            t.setCharacterSize(19);
-            t.setLetterSpacing(1.7f);
-            std::string s = nm;
-            t.setString(sf::String::fromUtf8(s.begin(), s.end()));
-            t.setFillColor(characterOption == idx ? sf::Color(accent.r, accent.g, accent.b, 255)
-                                                   : sf::Color(114, 115, 125, 190));
-            t.setPosition(cx - t.getGlobalBounds().width / 2.f, cY + cH - 44.f);
-            window.draw(t);
+            sf::Text nm;
+            nm.setFont(m_cinzel);
+            nm.setCharacterSize(20);
+            nm.setLetterSpacing(1.8f);
+            std::string ns = name;
+            nm.setString(sf::String::fromUtf8(ns.begin(), ns.end()));
+            nm.setFillColor(sel ? sf::Color(accent.r,accent.g,accent.b,255)
+                                : sf::Color(114,115,125,190));
+            nm.setPosition(cx - nm.getGlobalBounds().width*0.5f, cY + cH - 55.f);
+            window.draw(nm);
+
+            sf::Text rl;
+            rl.setFont(font);
+            rl.setCharacterSize(14);
+            rl.setStyle(sf::Text::Italic);
+            std::string rs = role;
+            rl.setString(sf::String::fromUtf8(rs.begin(), rs.end()));
+            rl.setFillColor(sel ? sf::Color(accent.r,accent.g,accent.b,180)
+                                : sf::Color(90,92,100,150));
+            rl.setPosition(cx - rl.getGlobalBounds().width*0.5f, cY + cH - 28.f);
+            window.draw(rl);
         };
-        drawName("JOAO",  250.f, 0, sf::Color(207, 224, 255));
-        drawName("RADLA", 550.f, 1, sf::Color(255, 210, 227));
+
+        drawCard(250.f, 0, sf::Color(120,160,230), texM,
+                 "JO\xc3\x83O", "Investigador");
+        drawCard(550.f, 1, sf::Color(230,140,170), texF,
+                 "RADLA", "Investigadora");
 
         sf::Text hint;
         hint.setFont(font);
         hint.setCharacterSize(13);
-        hint.setFillColor(sf::Color(93, 96, 105, 190));
+        hint.setFillColor(sf::Color(93,96,105,190));
         std::string hs = "\xe2\x86\x90 \xe2\x86\x92  escolher    \xc2\xb7    ENTER  confirmar";
         hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
-        hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 448.f);
+        hint.setPosition(400.f - hint.getGlobalBounds().width*0.5f, 448.f);
         window.draw(hint);
     }
 
+    // --- Phase 7: character confirmation ---
+    if (m_introPhase == 7) {
+        sf::Texture texC;
+        const char* spritePath = (selectedSkin == 1)
+            ? "assets/maps/sprites/player/player_f.png"
+            : "assets/maps/sprites/player/player_m.png";
+        if (texC.loadFromFile(spritePath)) {
+            sf::Sprite sp(texC);
+            sp.setTextureRect(sf::IntRect(16, 0, 16, 24));
+            sp.setScale(6.5f, 6.5f);
+            sp.setPosition(400.f - sp.getGlobalBounds().width*0.5f, 68.f);
+            window.draw(sp);
+        }
+
+        sf::Text nameT;
+        nameT.setFont(m_cinzel);
+        nameT.setCharacterSize(26);
+        nameT.setLetterSpacing(2.f);
+        std::string ns = (selectedSkin == 1) ? "Radla" : "Jo\xc3\xa3o";
+        nameT.setString(sf::String::fromUtf8(ns.begin(), ns.end()));
+        nameT.setFillColor(sf::Color(196,199,207,230));
+        nameT.setPosition(400.f - nameT.getGlobalBounds().width*0.5f, 245.f);
+        window.draw(nameT);
+
+        sf::Text desc;
+        desc.setFont(font);
+        desc.setCharacterSize(16);
+        desc.setStyle(sf::Text::Italic);
+        desc.setFillColor(sf::Color(115,118,128,200));
+        std::string ds = "A mans\xc3\xa3o te espera. Reina os di\xc3\xa1rios, encontre a chave"
+                         " \xe2\x80\x94 e escape antes que ela perceba voc\xc3\xaa.";
+        desc.setString(sf::String::fromUtf8(ds.begin(), ds.end()));
+        desc.setPosition(400.f - desc.getGlobalBounds().width*0.5f, 298.f);
+        window.draw(desc);
+
+        float hp = 0.5f + 0.5f * std::sin(flickerTimer * 1.8f);
+        sf::Text start;
+        start.setFont(m_cinzel);
+        start.setCharacterSize(18);
+        start.setLetterSpacing(2.f);
+        start.setFillColor(sf::Color(180,183,192, sf::Uint8(160 + 95*hp)));
+        std::string ss = "\xe2\x96\xb8 COME\xc3" "\x87" "AR";
+        start.setString(sf::String::fromUtf8(ss.begin(), ss.end()));
+        start.setPosition(400.f - start.getGlobalBounds().width*0.5f, 358.f);
+        window.draw(start);
+    }
+
+    // --- Fade overlay ---
     if (m_introOverlay > 0.f) {
-        sf::RectangleShape overlay(sf::Vector2f(800.f, 600.f));
+        sf::RectangleShape overlay(sf::Vector2f(W, H));
         overlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(m_introOverlay * 255.f)));
         window.draw(overlay);
     }
