@@ -28,16 +28,21 @@ private:
 
     sf::Font m_font;
 
-    static const int MAX_ACTIVE = 3;
+    static const int   MAX_ACTIVE = 4;
     static const float NOTIF_DURATION;
-    static const float FADE_IN_TIME;
+    static const float SLIDE_TIME;
     static const float FADE_OUT_TIME;
 
     struct ActiveNotif {
-        sf::String text;
-        float timer = 0.f;
+        sf::String  text;
+        float       timer    = 0.f;
+        float       targetY  = 0.f;   // posição Y de destino
+        float       currentY = 0.f;   // posição Y atual (interpolada)
     };
 
     ActiveNotif m_active[MAX_ACTIVE];
-    int         m_count = 0;  // quantas slots estão ocupadas
+    int         m_count = 0;
+
+    // Devolve cor de destaque baseada no conteúdo da mensagem
+    static sf::Color accentColor(const sf::String& text);
 };
