@@ -98,7 +98,7 @@ HUD::HUD() {
         m_pageSprite.setScale(SCALE, SCALE);
         m_pageSprite.setPosition(697.f, 4.f);
     }
-    if (m_lampTex.loadFromFile("assets/maps/sprites/items_lamp.png")) {
+    if (m_lampTex.loadFromFile("assets/maps/sprites/items_candle.png")) {
         m_lampSprite.setTexture(m_lampTex);
         m_lampSprite.setScale(SCALE, SCALE);
         m_lampSprite.setPosition(697.f, 23.f);
