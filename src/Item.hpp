@@ -32,6 +32,7 @@ private:
 
     float expirationTime;
     float elapsedTime;
+    float m_glowTimer = 0.f;
     bool  isVisible;
     bool  expired;
     Item* next;
