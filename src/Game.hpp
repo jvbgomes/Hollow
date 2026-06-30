@@ -180,7 +180,9 @@ private:
     void setupAreaExterna();
     void setupCozinha();
     void setupPorao();
+    void setupPoraoFundo();
     void setupDeposito();
+    void setupCorredorSaida();
     void resetGame();
 
     void updatePlaying(float deltaTime);
