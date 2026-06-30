@@ -116,6 +116,7 @@ private:
         std::string   targetRoom;
         sf::Vector2f  spawnPos;
         bool          eRequired = false;
+        sf::Vector2f  promptPos = {};  // (0,0) = auto, calculado pelo trigger
     };
     std::vector<Transition> transitions;
     std::string m_currentRoom;
@@ -124,6 +125,24 @@ private:
     MusicTrack m_pendingTrack = MusicTrack::None;
     float      m_trackTimer   = 0.f;
     static constexpr float TRACK_HOLD = 1.5f;
+
+    struct ObjPopup {
+        sf::String         header;
+        sf::String         name;
+        sf::String         status;
+        sf::Color          accent;
+        const sf::Texture* iconTex  = nullptr;
+        sf::IntRect        iconRect;
+        float              timer    = 0.f;
+        float              slideY   = 650.f;
+    };
+    bool     m_objPopupActive = false;
+    ObjPopup m_objPopup;
+    void showObjPopup(const sf::String& header, const sf::String& name,
+                      const sf::String& status, sf::Color accent,
+                      const sf::Texture* tex, sf::IntRect rect);
+    void updateObjPopup(float dt);
+    void drawObjPopup();
 
     int totalPages;
     sf::Vector2f exitPosition;
@@ -157,6 +176,11 @@ private:
     void setupHallPrincipal();
     void setupQuartoCrianca();
     void setupBiblioteca();
+    void setupSalaEstar();
+    void setupAreaExterna();
+    void setupCozinha();
+    void setupPorao();
+    void setupDeposito();
     void resetGame();
 
     void updatePlaying(float deltaTime);
