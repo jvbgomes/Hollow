@@ -68,74 +68,89 @@ sf::Vector2f Spectre::probeDir(sf::Vector2f dir, float angle, float dt, const Ma
     return blocked ? sf::Vector2f{0.f, 0.f} : d;
 }
 
+void Spectre::setWaypoints(const std::vector<sf::Vector2f>& wp) {
+    m_waypoints = wp;
+    m_wpIdx     = 0;
+    m_pauseTimer = 0.f;
+}
+
 void Spectre::update(float dt, const Map& map, sf::Vector2f playerPos) {
     bool sees = canSeePlayer(playerPos);
 
     if (sees) {
         m_chasing    = true;
         m_chaseTimer = CHASE_MEMORY;
-
-        // Atualiza direção de visão em direção ao player
-        float dx   = playerPos.x - position.x;
-        float dy   = playerPos.y - position.y;
-        float dist = std::sqrt(dx * dx + dy * dy);
-        if (dist > 0.f)
-            m_facingDir = {dx / dist, dy / dist};
-
+        float dx = playerPos.x - position.x;
+        float dy = playerPos.y - position.y;
+        float dist = std::sqrt(dx*dx + dy*dy);
+        if (dist > 0.f) m_facingDir = {dx/dist, dy/dist};
     } else if (m_chasing) {
         m_chaseTimer -= dt;
-        if (m_chaseTimer <= 0.f) {
-            m_chasing = false;
-        }
+        if (m_chaseTimer <= 0.f) m_chasing = false;
     }
 
     if (m_chasing) {
-        float dx   = playerPos.x - position.x;
-        float dy   = playerPos.y - position.y;
-        float dist = std::sqrt(dx * dx + dy * dy);
-
+        // --- Modo perseguição (com desvio de colisão) ---
+        float dx = playerPos.x - position.x;
+        float dy = playerPos.y - position.y;
+        float dist = std::sqrt(dx*dx + dy*dy);
         if (dist > 0.f) {
-            sf::Vector2f desired = {dx / dist, dy / dist};
-
-            // Detecção de "preso": se mal se moveu em 0.8s, define fuga perpendicular
-            float movedSq = (position.x - m_stuckPos.x) * (position.x - m_stuckPos.x)
-                          + (position.y - m_stuckPos.y) * (position.y - m_stuckPos.y);
+            sf::Vector2f desired = {dx/dist, dy/dist};
+            float movedSq = (position.x-m_stuckPos.x)*(position.x-m_stuckPos.x)
+                          + (position.y-m_stuckPos.y)*(position.y-m_stuckPos.y);
             m_stuckTimer += dt;
             if (m_stuckTimer >= 0.8f) {
                 if (movedSq < 4.f && m_escapeTimer <= 0.f) {
-                    m_escapeAngle = (std::rand() % 2) ? PI / 2.f : -PI / 2.f;
+                    m_escapeAngle = (std::rand()%2) ? PI/2.f : -PI/2.f;
                     m_escapeTimer = 0.6f;
                 }
-                m_stuckTimer = 0.f;
-                m_stuckPos   = position;
+                m_stuckTimer = 0.f; m_stuckPos = position;
             }
             if (m_escapeTimer > 0.f) m_escapeTimer -= dt;
-
-            // Proba candidatos: se em fuga usa ângulo fixo; senão tenta ±30°, ±60°, ±90°
             float base = (m_escapeTimer > 0.f) ? m_escapeAngle : 0.f;
-            static const float PROBES[] = {0.f, PI/6.f, -PI/6.f, PI/3.f, -PI/3.f, PI/2.f, -PI/2.f};
+            static const float PROBES[] = {0.f,PI/6.f,-PI/6.f,PI/3.f,-PI/3.f,PI/2.f,-PI/2.f};
             sf::Vector2f chosen = {};
             for (float offset : PROBES) {
-                sf::Vector2f c = probeDir(desired, base + offset, dt, map);
-                if (c.x != 0.f || c.y != 0.f) { chosen = c; break; }
+                sf::Vector2f c = probeDir(desired, base+offset, dt, map);
+                if (c.x!=0.f || c.y!=0.f) { chosen=c; break; }
             }
-
-            if (chosen.x == 0.f && chosen.y == 0.f) chosen = desired; // fallback
-
+            if (chosen.x==0.f && chosen.y==0.f) chosen = desired;
             applyDirection(chosen);
-            m_facingDir = chosen; // cone sempre alinhado com o sprite
-
+            m_facingDir = chosen;
             position.x += chosen.x * speed * dt;
             sprite.setPosition(position);
             if (map.isCollidingWith(sprite.getGlobalBounds())) {
                 position.x -= chosen.x * speed * dt;
                 sprite.setPosition(position);
             }
-
             position.y += chosen.y * speed * dt;
             sprite.setPosition(position);
             if (map.isCollidingWith(sprite.getGlobalBounds())) {
                 position.y -= chosen.y * speed * dt;
+                sprite.setPosition(position);
+            }
+        }
+    } else if (!m_waypoints.empty()) {
+        // --- Modo patrulha: ignora colisão (fantasma atravessa móveis) ---
+        if (m_pauseTimer > 0.f) {
+            m_pauseTimer -= dt;
+        } else {
+            sf::Vector2f target = m_waypoints[m_wpIdx];
+            float dx = target.x - position.x;
+            float dy = target.y - position.y;
+            float dist = std::sqrt(dx*dx + dy*dy);
+            if (dist < 10.f) {
+                // chegou — avança para o próximo waypoint e faz pausa curta
+                m_wpIdx = (m_wpIdx + 1) % (int)m_waypoints.size();
+                m_pauseTimer = 0.6f + (std::rand()%60)*0.01f; // 0.6-1.2s
+            } else {
+                float patrolSpeed = speed * 0.55f; // mais devagar na patrulha
+                sf::Vector2f dir = {dx/dist, dy/dist};
+                applyDirection(dir);
+                m_facingDir = dir;
+                // move sem checar colisão (atravessa mobília como fantasma)
+                position.x += dir.x * patrolSpeed * dt;
+                position.y += dir.y * patrolSpeed * dt;
                 sprite.setPosition(position);
             }
         }

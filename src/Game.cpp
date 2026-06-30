@@ -244,15 +244,15 @@ void Game::setupLevel() {
     if (itemOk({236.f,  86.f})) items.addItem(ItemType::Lamp, {236.f,  86.f}, lampItemTex, fullRect);
     if (itemOk({176.f,  96.f})) items.addItem(ItemType::Key,  {176.f,  96.f}, keyItemTex,  keyRect);
 
-    // Portas do vestibulo (posicoes apos expansao +1 tile = +16px em x e y)
-    // Entrada: tiles (10,3)-(11,3) = x=160-191, y=48-63
-    doors.push_back({ {158.f,  44.f,  36.f, 28.f}, Door::Kind::Entrance });
-    // Parede esquerda, tiles (1,8)-(1,9): x=16, y=128, h=32
-    doors.push_back({ { 16.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
-    // Parede direita, tiles (20,8)-(20,9): x=320, y=128, h=32
-    doors.push_back({ {320.f, 128.f,  16.f, 32.f}, Door::Kind::Locked });
-    // Passagem sul → hall principal (requer E)
-    transitions.push_back({ {144.f, 228.f, 80.f, 28.f}, "hall_principal", {208.f, 76.f}, true });
+    // Portas do vestibulo — posições baseadas na Collision layer do TMX 24x19
+    // Entrada topo: cols 10-13 abertas na row 4 → x=160-223, y=48-79
+    doors.push_back({ {160.f,  48.f,  64.f, 32.f}, Door::Kind::Entrance });
+    // Móvel esquerdo (armário/porta) Furniture cols 1-2, rows 6-9 → x=16-47, y=96-159
+    doors.push_back({ { 16.f,  96.f,  32.f, 64.f}, Door::Kind::Locked });
+    // Móvel direito Furniture cols 21-22, rows 11-15 → x=336-367, y=176-255
+    doors.push_back({ {334.f, 176.f,  32.f, 80.f}, Door::Kind::Locked });
+    // Passagem sul → hall principal: cols 11-13 abertas row 18 → x=176-223, y=272-303
+    transitions.push_back({ {160.f, 268.f, 64.f, 36.f}, "hall_principal", {208.f, 76.f}, true });
 
     // Fontes de luz: pos, raioBase, flickerAmt, flickerSpeed, phase
     // Candelabro esq  (tiles 9,2-4): chama no tile (9,2) → pixel (152,40)
@@ -324,10 +324,10 @@ void Game::setupBiblioteca() {
     // Saída esquerda → hall principal
     transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
 
-    // Eleanor — bibliotecária fantasma
+    // Eleanor — próxima ao spawn do player (spawn={40,200}), lado direito da entrada
     npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
     sf::IntRect npcRect(16, 0, 16, 24);
-    NPC* eleanor = new NPC("Eleanor", 280.f, 168.f, npcTexEleanor, npcRect);
+    NPC* eleanor = new NPC("Eleanor", 80.f, 200.f, npcTexEleanor, npcRect);
     eleanor->setColor(sf::Color(180, 180, 180, 200));
     eleanor->addOption("Onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?", {
         {"Voc\xc3\xaa",    "Eleanor, sabe onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?",                         true},
@@ -346,10 +346,32 @@ void Game::setupBiblioteca() {
     });
     npcs.push_back(eleanor);
 
-    // Inimigos
-    enemies.push_back(new Spectre(400.f, 200.f));
-    enemies.push_back(new Spectre(600.f, 160.f));
-    enemies.push_back(new Spectre(500.f, 280.f));
+    // Spectres com patrulha — percorrem a biblioteca como guardiões
+    // Biblioteca: 52×21 tiles = 832×336 px, spawn player em (40,200)
+    {
+        auto* s1 = new Spectre(200.f, 100.f);
+        s1->setWaypoints({
+            {200.f, 80.f}, {380.f, 80.f}, {380.f, 200.f},
+            {200.f, 200.f}, {200.f, 280.f}, {80.f, 280.f}, {80.f, 140.f}
+        });
+        enemies.push_back(s1);
+    }
+    {
+        auto* s2 = new Spectre(580.f, 160.f);
+        s2->setWaypoints({
+            {500.f, 80.f}, {700.f, 80.f}, {780.f, 180.f},
+            {700.f, 290.f}, {500.f, 290.f}, {380.f, 200.f}, {420.f, 100.f}
+        });
+        enemies.push_back(s2);
+    }
+    {
+        auto* s3 = new Spectre(680.f, 260.f);
+        s3->setWaypoints({
+            {680.f, 100.f}, {780.f, 100.f}, {800.f, 200.f},
+            {780.f, 300.f}, {600.f, 300.f}, {500.f, 180.f}, {600.f, 100.f}
+        });
+        enemies.push_back(s3);
+    }
 
     // Página do diário
     if (pageItemTex.getSize().x == 0)
@@ -1247,32 +1269,87 @@ void Game::renderIntro() {
     };
 
     auto drawMansion = [&](float scale, float mtopY) {
-        float mw = 512.f * scale, mh = 336.f * scale;
+        float mw = 520.f * scale, mh = 400.f * scale;
         float ml = 400.f - mw * 0.5f, mt = mtopY;
-        sf::Color mc(4, 6, 10), mb(5, 7, 11);
+        sf::Color mc(3, 5, 9);    // torres/chaminés (mais escuro)
+        sf::Color mb(5, 7, 12);   // corpo principal
+        sf::Color mrf(4, 6, 10);  // telhado
+
         auto mr2 = [&](float rx, float ry, float rw, float rh, sf::Color c) {
-            filledRect(ml + rx, mt + ry, rw, rh, c);
+            filledRect(ml+rx, mt+ry, rw, rh, c);
         };
-        mr2(mw*0.04f, mh*0.30f, mw*0.16f, mh*0.70f, mc);
-        tri3({ml+mw*0.12f, mt+mh*0.12f}, {ml+mw*0.24f, mt+mh*0.30f}, {ml, mt+mh*0.30f}, mc);
-        mr2(mw*0.80f, mh*0.30f, mw*0.16f, mh*0.70f, mc);
-        tri3({ml+mw*0.88f, mt+mh*0.12f}, {ml+mw, mt+mh*0.30f}, {ml+mw*0.76f, mt+mh*0.30f}, mc);
-        mr2(mw*0.20f, mh*0.40f, mw*0.60f, mh*0.60f, mb);
-        tri3({ml+mw*0.50f, mt+mh*0.16f}, {ml+mw*0.82f, mt+mh*0.40f}, {ml+mw*0.18f, mt+mh*0.40f}, mb);
-        mr2(mw*0.30f, -mh*0.04f, mw*0.04f, mh*0.22f, mc);
-        mr2(mw*0.64f, -mh*0.06f, mw*0.04f, mh*0.24f, mc);
-        mr2(mw*0.54f, -mh*0.01f, mw*0.025f, mh*0.14f, mc);
-        mr2(mw*0.43f, mh*0.74f, mw*0.14f, mh*0.26f, sf::Color(255, 150, 55, 65));
-        mr2(mw*0.462f, mh*0.80f, mw*0.076f, mh*0.20f, sf::Color(6, 4, 2));
-        float f1 = 0.55f + 0.45f * std::sin(flickerTimer * 1.1f);
-        float f2 = 0.55f + 0.45f * std::sin(flickerTimer * 1.4f + 1.2f);
-        float f3 = 0.55f + 0.45f * std::sin(flickerTimer * 0.8f + 2.8f);
-        mr2(mw*0.07f,  mh*0.40f, mw*0.07f,  mh*0.10f, sf::Color(255,178,92, sf::Uint8(200*f1)));
-        mr2(mw*0.86f,  mh*0.44f, mw*0.07f,  mh*0.10f, sf::Color(255,178,92, sf::Uint8(175*f2)));
-        mr2(mw*0.60f,  mh*0.54f, mw*0.065f, mh*0.11f, sf::Color(255,178,92, sf::Uint8(140*f3)));
-        mr2(mw*0.28f,  mh*0.52f, mw*0.065f, mh*0.11f, sf::Color(120,150,200, 50));
-        mr2(mw*0.44f,  mh*0.52f, mw*0.065f, mh*0.11f, sf::Color(120,150,200, 38));
-        mr2(mw*0.30f,  mh*0.36f, mw*0.065f, mh*0.08f, sf::Color(120,150,200, 30));
+
+        // --- Torres laterais ---
+        // Torre esquerda (mais alta)
+        mr2(mw*0.02f, mh*0.22f, mw*0.13f, mh*0.78f, mc);
+        // Telhado torre esq (triângulo pontiagudo)
+        tri3({ml+mw*0.085f, mt+mh*0.02f},
+             {ml+mw*0.15f,  mt+mh*0.24f},
+             {ml+mw*0.02f,  mt+mh*0.24f}, mc);
+        // Torre direita
+        mr2(mw*0.85f, mh*0.22f, mw*0.13f, mh*0.78f, mc);
+        // Telhado torre dir
+        tri3({ml+mw*0.915f, mt+mh*0.02f},
+             {ml+mw*0.98f,  mt+mh*0.24f},
+             {ml+mw*0.85f,  mt+mh*0.24f}, mc);
+
+        // --- Corpo principal ---
+        mr2(mw*0.15f, mh*0.46f, mw*0.70f, mh*0.54f, mb);
+
+        // --- TELHADO PRINCIPAL (trapézio — o "telhado" que faltava) ---
+        sf::ConvexShape telhado(4);
+        telhado.setPoint(0, {ml + mw*0.22f, mt + mh*0.28f}); // canto sup esq
+        telhado.setPoint(1, {ml + mw*0.78f, mt + mh*0.28f}); // canto sup dir
+        telhado.setPoint(2, {ml + mw*0.85f, mt + mh*0.46f}); // canto inf dir
+        telhado.setPoint(3, {ml + mw*0.15f, mt + mh*0.46f}); // canto inf esq
+        telhado.setFillColor(mrf);
+        window.draw(telhado);
+
+        // Calha/beira do telhado (linha mais escura no topo do trapézio)
+        mr2(mw*0.22f, mh*0.27f, mw*0.56f, mh*0.025f, sf::Color(2,3,7));
+
+        // --- Dormer/empena central (sobre o telhado) ---
+        tri3({ml+mw*0.50f, mt+mh*0.12f},
+             {ml+mw*0.63f, mt+mh*0.30f},
+             {ml+mw*0.37f, mt+mh*0.30f}, mc);
+
+        // --- Chaminés ---
+        mr2(mw*0.28f,  -mh*0.05f, mw*0.035f, mh*0.22f, mc);
+        mr2(mw*0.28f,  -mh*0.06f, mw*0.055f, mh*0.025f, mc); // chapéu esq
+        mr2(mw*0.65f,  -mh*0.07f, mw*0.035f, mh*0.24f, mc);
+        mr2(mw*0.645f, -mh*0.08f, mw*0.055f, mh*0.025f, mc); // chapéu dir
+        mr2(mw*0.47f,  -mh*0.01f, mw*0.022f, mh*0.16f, mc);  // chaminé central menor
+        // Chaminés das torres
+        mr2(mw*0.04f,  -mh*0.04f, mw*0.025f, mh*0.10f, mc);
+        mr2(mw*0.90f,  -mh*0.04f, mw*0.025f, mh*0.10f, mc);
+
+        // --- Platibanda/parapeito (conecta torres ao telhado) ---
+        mr2(mw*0.15f, mh*0.44f, mw*0.70f, mh*0.03f, sf::Color(3,4,8, 200));
+
+        // --- Portal / porta ---
+        mr2(mw*0.42f, mh*0.78f, mw*0.16f, mh*0.22f, sf::Color(255,145,50, 55));
+        mr2(mw*0.46f, mh*0.83f, mw*0.08f, mh*0.17f, sf::Color(5,3,1));
+        // Arco da porta
+        tri3({ml+mw*0.50f, mt+mh*0.80f},
+             {ml+mw*0.54f, mt+mh*0.84f},
+             {ml+mw*0.46f, mt+mh*0.84f}, sf::Color(255,140,45,45));
+
+        // --- Janelas com flicker ---
+        float f1 = 0.55f + 0.45f * std::sin(flickerTimer * 1.10f);
+        float f2 = 0.55f + 0.45f * std::sin(flickerTimer * 1.40f + 1.2f);
+        float f3 = 0.55f + 0.45f * std::sin(flickerTimer * 0.80f + 2.8f);
+        float f4 = 0.55f + 0.45f * std::sin(flickerTimer * 1.65f + 0.4f);
+        // Torres — âmbar
+        mr2(mw*0.04f, mh*0.34f, mw*0.06f, mh*0.09f, sf::Color(255,178,92, sf::Uint8(185*f1)));
+        mr2(mw*0.04f, mh*0.52f, mw*0.06f, mh*0.09f, sf::Color(255,178,92, sf::Uint8(110*f2)));
+        mr2(mw*0.90f, mh*0.36f, mw*0.06f, mh*0.09f, sf::Color(255,178,92, sf::Uint8(195*f3)));
+        mr2(mw*0.90f, mh*0.54f, mw*0.06f, mh*0.09f, sf::Color(255,178,92, sf::Uint8(90*f4)));
+        // Corpo principal — frios (azul-cinza)
+        mr2(mw*0.22f, mh*0.56f, mw*0.07f, mh*0.10f, sf::Color(120,150,200, 45));
+        mr2(mw*0.38f, mh*0.56f, mw*0.07f, mh*0.10f, sf::Color(120,150,200, 35));
+        mr2(mw*0.62f, mh*0.56f, mw*0.07f, mh*0.10f, sf::Color(255,178,92, sf::Uint8(105*f1)));
+        // Dormer — janela pequena
+        mr2(mw*0.47f, mh*0.17f, mw*0.06f, mh*0.09f, sf::Color(120,150,200, 40));
     };
 
     auto drawHills = [&](float horizY) {
@@ -1323,13 +1400,13 @@ void Game::renderIntro() {
         moon.setFillColor(sf::Color(216,218,226));
         moon.setPosition(mx-mr, my-mr);
         window.draw(moon);
-        float horizY = H * (m_introPhase == 2 ? 0.52f : 0.46f);
+        float horizY = H * (m_introPhase == 2 ? 0.55f : 0.50f);
         drawHills(horizY);
         filledRect(0.f, horizY, W, H - horizY, sf::Color(4,5,9));
-        float sc = (m_introPhase == 2) ? 0.72f : 0.88f;
-        drawMansion(sc, H * (m_introPhase == 2 ? 0.22f : 0.16f));
+        float sc = (m_introPhase == 2) ? 0.52f : 0.65f;
+        drawMansion(sc, H * (m_introPhase == 2 ? 0.28f : 0.22f));
         if (m_introPhase == 3) {
-            float tx = 400.f - 512.f*0.88f*0.5f - 68.f;
+            float tx = 400.f - 520.f*0.65f*0.5f - 55.f;
             filledRect(tx, H*0.42f, 9.f, H*0.44f, sf::Color(3,4,8));
             sf::RectangleShape b1({88.f, 5.f});
             b1.setOrigin(0.f,2.5f); b1.setPosition(tx+5.f, H*0.42f+70.f);
