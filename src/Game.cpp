@@ -1577,11 +1577,10 @@ void Game::renderIntro() {
     if (m_introPhase >= 1 && m_introPhase <= 5) {
         const auto& t = phases[m_introPhase - 1];
         bool hasScene = (m_introPhase >= 2);
-        float textY = hasScene ? H - 132.f : H * 0.42f;
-        float subY  = hasScene ? H - 90.f  : H * 0.52f;
+        float textY = hasScene ? H - 160.f : H * 0.38f;
 
         if (hasScene)
-            filledRect(0.f, H - 165.f, W, 165.f, sf::Color(0,0,0,145));
+            filledRect(0.f, H - 195.f, W, 195.f, sf::Color(0,0,0,145));
 
         sf::Text mainTxt;
         mainTxt.setFont(font);
@@ -1591,6 +1590,9 @@ void Game::renderIntro() {
         mainTxt.setString(sf::String::fromUtf8(ms.begin(), ms.end()));
         mainTxt.setPosition(400.f - mainTxt.getGlobalBounds().width / 2.f, textY);
         window.draw(mainTxt);
+
+        // subY calculado após a altura real do mainTxt + espaço generoso
+        float subY = textY + mainTxt.getGlobalBounds().height + 22.f;
 
         sf::Text subTxt;
         subTxt.setFont(font);
