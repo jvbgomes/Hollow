@@ -9,12 +9,13 @@ Projectile::Projectile(sf::Vector2f startPos, sf::Vector2f direction)
     if (length > 0.f)
         velocity = (direction / length) * 280.f;
 
-    if (texture.loadFromFile("assets/maps/sprites/items_lamp.png")) {
+    if (texture.loadFromFile("assets/maps/sprites/items_candle.png")) {
+        texture.setSmooth(true);
         sprite.setTexture(texture);
         sprite.setScale(0.5f, 0.5f); // 32x32 → 16x16 em voo
     } else {
         sf::Image img;
-        img.create(12, 12, sf::Color(255, 200, 50));
+        img.create(12, 12, sf::Color(255, 180, 40));
         texture.loadFromImage(img);
         sprite.setTexture(texture);
     }
