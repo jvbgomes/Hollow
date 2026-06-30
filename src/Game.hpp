@@ -44,6 +44,7 @@ private:
 
     bool  m_dialogueWasActive  = false;
     bool  m_hallShadowsSpawned = false;
+    bool  m_bossSpawned        = false;
     float m_bossGrowlCooldown  = 0.f;
     bool  m_bossWasNearby      = false;
 
