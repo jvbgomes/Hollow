@@ -24,7 +24,9 @@ Game::Game()
       characterOption(0),
       selectedSkin(0)
 {
-    window.create(sf::VideoMode(800, 600), "Hollow");
+    sf::ContextSettings ctx;
+    ctx.antialiasingLevel = 8;
+    window.create(sf::VideoMode(800, 600), "Hollow", sf::Style::Default, ctx);
     window.setFramerateLimit(60);
     m_lightMap.create(800, 600);
 
@@ -43,10 +45,10 @@ Game::Game()
 
     titleText.setFont(m_cinzel);
     titleText.setString("HOLLOW");
-    titleText.setCharacterSize(86);
+    titleText.setCharacterSize(90);
     titleText.setLetterSpacing(3.f);
     titleText.setFillColor(sf::Color(120, 122, 132, 210));
-    titleText.setPosition(400.f - titleText.getGlobalBounds().width / 2.f, 120.f);
+    titleText.setPosition(400.f - titleText.getGlobalBounds().width / 2.f, 148.f);
 
     subtitleText.setFont(font);
     subtitleText.setCharacterSize(22);
@@ -107,31 +109,19 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
     else if (room == "hall_principal")  setupHallPrincipal();
     else if (room == "quarto_crianca")  setupQuartoCrianca();
     else if (room == "biblioteca")      setupBiblioteca();
+    else if (room == "porao")           setupPorao();
+    else if (room == "deposito")        setupDeposito();
+    else if (room == "sala_estar")      setupSalaEstar();
+    else if (room == "area_externa")    setupAreaExterna();
+    else if (room == "cozinha")         setupCozinha();
 }
 
 void Game::setupLevel() {
-    enemies.push_back(new Spectre(116.f, 216.f));
-
-    npcTexThomas .loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
     npcTexCrianca.loadFromFile("assets/maps/sprites/npcs/crianca/crianca.png");
-    sf::IntRect npcRect(16, 0, 16, 24);
-
-    NPC* thomas = new NPC("Thomas", 86.f, 216.f, npcTexThomas, npcRect);
-    thomas->addOption("Onde está a chave para sair?", {
-        {"Você",   "Thomas, preciso sair daqui. Onde está a chave?",                          true},
-        {"Thomas", "A chave está no porão. Atrás do espelho quebrado.",                       false},
-        {"Thomas", "Mas cuidado com o que habita ali. Não é amigável.",                       false},
-    });
-    thomas->addOption("Tem algum lugar seguro?", {
-        {"Você",   "Existe algum lugar seguro nesta mansão?",                                 true},
-        {"Thomas", "Seguro? Aqui não existe isso.",                                           false},
-        {"Thomas", "Mas o porão tem algo estranho. As sombras hesitam antes de entrar.",      false},
-    });
-    npcs.push_back(thomas);
 
 
-    pageItemTex.loadFromFile("assets/maps/sprites/items_page.png");
-    lampItemTex.loadFromFile("assets/maps/sprites/items_lamp.png");
+    pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
+    lampItemTex.loadFromFile("assets/maps/sprites/items_candle.png");
     keyItemTex.loadFromFile("assets/tilesets/PropsV2.png");
     healItemTex.loadFromFile("assets/maps/sprites/items_heal.png");
 
@@ -145,114 +135,19 @@ void Game::setupLevel() {
         return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
     };
 
-    if (itemOk({ 71.f, 136.f}))
-    items.addItem(ItemType::Page, { 71.f, 136.f}, pageItemTex, fullRect, 999.f,
-        "Diário — Primeiro Dia",
-        "A porta fechou atrás de mim. Não foi\n"
-        "o vento — ouvi o trinco. Alguém fechou.\n\n"
-        "Cheguei à Mansão Voss para investigar\n"
-        "três desaparecimentos em dois meses.\n"
-        "Pesquisadores contratados pelo próprio\n"
-        "município para catalogar o acervo.\n"
-        "Nenhum voltou.\n\n"
-        "Eleanor ainda está aqui. Reconheci o\n"
-        "nome da lista, mas não a pessoa. Ela\n"
-        "olha através de mim quando falo.\n"
-        "Repete a mesma frase em voz baixa:\n"
-        "'ela não dorme, ela não dorme'.\n\n"
-        "Preciso encontrar uma saída.\n"
-        "Antes que o sol desapareça de vez.");
-
-    if (itemOk({286.f, 166.f}))
-    items.addItem(ItemType::Page, {286.f, 166.f}, pageItemTex, fullRect, 999.f,
-        "Nota de Eleanor — Sobre a Entidade",
-        "Errei ao chamar de sobrenatural.\n"
-        "Sobrenatural implica exceção à regra.\n"
-        "Isso aqui é a própria regra.\n\n"
-        "Encontrei registros do século XVIII\n"
-        "descrevendo 'a presença que habita\n"
-        "o subsolo do monte'. Sempre esteve.\n"
-        "A mansão foi construída sobre ela.\n\n"
-        "O que descobri é perturbador:\n"
-        "ela não persegue por instinto.\n"
-        "Ela persegue porque você foge.\n"
-        "O medo é o alimento. A fuga é o convite.\n\n"
-        "Não há como destruí-la.\n"
-        "Mas há como sair. A saída existe.\n"
-        "Eu só não consigo mais me mover.");
-
-    if (itemOk({156.f, 216.f}))
-    items.addItem(ItemType::Page, {156.f, 216.f}, pageItemTex, fullRect, 999.f,
-        "Registro da Construção — 1891",
-        "Ao Sr. Arquiteto Brenner,\n\n"
-        "Interrompa as escavações do porão.\n"
-        "Os trabalhadores relatam sons durante\n"
-        "a noite. Três abandonaram o canteiro.\n"
-        "Um deles não foi encontrado.\n\n"
-        "Continuamos assim mesmo.\n\n"
-        "As sombras vieram primeiro — figuras\n"
-        "sem forma nos corredores ao anoitecer.\n"
-        "Depois vieram os espectros, mais\n"
-        "definidos, com algo parecido com rosto.\n"
-        "Por último, Ela.\n\n"
-        "Não sabemos o nome correto.\n"
-        "Os trabalhadores chamam de A Entidade.\n"
-        "O nome parece suficiente.\n\n"
-        "— Arq. M. Voss, proprietário");
-
-    if (itemOk({ 96.f, 176.f}))
-    items.addItem(ItemType::Page, { 96.f, 176.f}, pageItemTex, fullRect, 999.f,
-        "Anotações de Thomas — Sem Data",
-        "Observei por semanas.\n\n"
-        "As sombras evitam o porão.\n"
-        "Há algo no espelho antigo que as\n"
-        "repele — talvez o reflexo as confunda,\n"
-        "talvez seja outra coisa. Não importa.\n"
-        "O fato é: elas não entram.\n\n"
-        "Escondi a chave da saída principal\n"
-        "atrás do espelho. É o único lugar\n"
-        "que posso garantir que estará lá.\n\n"
-        "Se você está lendo isso, chegou até\n"
-        "aqui. Isso já diz algo sobre você.\n\n"
-        "Vá ao porão. Pegue a chave.\n"
-        "Use na porta do fundo, lado leste.\n"
-        "Não pare para entender.\n"
-        "Não olhe para trás.\n"
-        "Apenas saia.");
-
-    if (itemOk({216.f, 106.f}))
-    items.addItem(ItemType::Page, {216.f, 106.f}, pageItemTex, fullRect, 999.f,
-        "A Última Mensagem — M.V.",
-        "Encontrei as páginas. Falei com todos.\n"
-        "Thomas me deu a chave.\n"
-        "Tinha tudo que precisava.\n\n"
-        "A saída estava a dez passos.\n"
-        "Senti o ar frio do lado de fora.\n"
-        "Vi a luz lá fora.\n\n"
-        "Ouvi algo atrás de mim.\n"
-        "Um som que não era vento.\n"
-        "Não era madeira rangendo.\n\n"
-        "Olhei para trás.\n\n"
-        "Ela estava lá.\n"
-        "Sempre esteve.\n"
-        "Só estava esperando eu perceber.\n\n"
-        "Se você encontrar isso —\n"
-        "não cometa o mesmo erro.\n\n"
-        "— M.V., novembro de 1987");
-
+    // Vestíbulo: apenas lamparinas — páginas e chave redistribuídas pelos cômodos
     if (itemOk({166.f,  86.f})) items.addItem(ItemType::Lamp, {166.f,  86.f}, lampItemTex, fullRect);
     if (itemOk({236.f,  86.f})) items.addItem(ItemType::Lamp, {236.f,  86.f}, lampItemTex, fullRect);
-    if (itemOk({176.f,  96.f})) items.addItem(ItemType::Key,  {176.f,  96.f}, keyItemTex,  keyRect);
 
-    // Portas do vestibulo — posições baseadas na Collision layer do TMX 24x19
-    // Entrada topo: cols 10-13 abertas na row 4 → x=160-223, y=48-79
-    doors.push_back({ {160.f,  48.f,  64.f, 32.f}, Door::Kind::Entrance });
-    // Móvel esquerdo (armário/porta) Furniture cols 1-2, rows 6-9 → x=16-47, y=96-159
-    doors.push_back({ { 16.f,  96.f,  32.f, 64.f}, Door::Kind::Locked });
-    // Móvel direito Furniture cols 21-22, rows 11-15 → x=336-367, y=176-255
-    doors.push_back({ {334.f, 176.f,  32.f, 80.f}, Door::Kind::Locked });
-    // Passagem sul → hall principal: cols 11-13 abertas row 18 → x=176-223, y=272-303
-    transitions.push_back({ {160.f, 268.f, 64.f, 36.f}, "hall_principal", {208.f, 76.f}, true });
+    // Portas do vestibulo — posições centradas nos tiles indicados pelo usuário
+    // Entrada mansão: tile (11,3) → centro pixel (184,56); cloud = center - 16px vertical
+    doors.push_back({ {168.f, 40.f, 32.f, 32.f}, Door::Kind::Entrance });
+    // Porta emperrada esq: tile (1,10) → centro (24,168)
+    doors.push_back({ {  8.f, 152.f, 32.f, 32.f}, Door::Kind::Locked });
+    // Porta emperrada dir: tile (22,10) → centro (360,168)
+    doors.push_back({ {344.f, 152.f, 32.f, 32.f}, Door::Kind::Locked });
+    // Passagem sul → hall: cloud próxima ao tile (12,17) → trigger.top=272, cloud y=260
+    transitions.push_back({ {160.f, 272.f, 64.f, 32.f}, "hall_principal", {208.f, 76.f}, true, {200.f, 296.f} });
 
     // Fontes de luz: pos, raioBase, flickerAmt, flickerSpeed, phase
     // Candelabro esq  (tiles 9,2-4): chama no tile (9,2) → pixel (152,40)
@@ -263,8 +158,16 @@ void Game::setupLevel() {
     m_lights.push_back({ {160.f, 120.f}, 45.f,  7.f, 2.6f, 2.9f });
     // Vela (15,2) → pixel (248,40)
     m_lights.push_back({ {248.f,  40.f}, 40.f,  8.f, 2.8f, 1.7f });
-    // Vela (17,14) → pixel (280,232)
-    m_lights.push_back({ {280.f, 232.f}, 40.f,  8.f, 2.5f, 3.3f });
+    // Canto esquerdo  (1,8)  → pixel (24,136)
+    m_lights.push_back({ { 24.f, 136.f}, 50.f,  9.f, 2.4f, 0.5f });
+    // Canto direito   (22,8) → pixel (360,136)
+    m_lights.push_back({ {360.f, 136.f}, 50.f,  9.f, 2.2f, 2.1f });
+    // Passagem sul esq (14,17) → pixel (232,280)
+    m_lights.push_back({ {232.f, 280.f}, 48.f,  8.f, 2.6f, 1.0f });
+    // Passagem sul dir (15,17) → pixel (248,280)
+    m_lights.push_back({ {248.f, 280.f}, 48.f,  8.f, 2.3f, 3.0f });
+    // Canto inferior esq (3,14) → pixel (56,232)
+    m_lights.push_back({ { 56.f, 232.f}, 48.f,  8.f, 2.5f, 1.8f });
 }
 
 void Game::setupHallPrincipal() {
@@ -275,6 +178,10 @@ void Game::setupHallPrincipal() {
     transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
     // Passagem direita (col 25, rows 4-5) → biblioteca
     transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
+    // Entrada inferior esquerda → porão (Thomas)
+    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {192.f, 48.f}, true });
+    // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {200.f, 48.f}, true });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -287,7 +194,7 @@ void Game::setupHallPrincipal() {
 
 void Game::setupQuartoCrianca() {
     // Saída direita → hall principal (col 17, rows 6-9 = y=96-160)
-    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true });
+    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true, {264.f, 120.f} });
 
     // Luzes: (col,row) → pixel centro = col*16, row*16
     m_lights.push_back({ {256.f,  64.f}, 50.f, 8.f, 2.1f, 0.0f });  // (16,4)
@@ -330,9 +237,11 @@ void Game::setupBiblioteca() {
     NPC* eleanor = new NPC("Eleanor", 80.f, 200.f, npcTexEleanor, npcRect);
     eleanor->setColor(sf::Color(180, 180, 180, 200));
     eleanor->addOption("Onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?", {
-        {"Voc\xc3\xaa",    "Eleanor, sabe onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?",                         true},
-        {"Eleanor", "As p\xc3\xa1ginas est\xc3\xa3o espalhadas pela mans\xc3\xa3o inteira...",                     false},
-        {"Eleanor", "Uma no escrit\xc3\xb3rio, outra no jardim de inverno. A \xc3\xbaltima n\xc3\xa3o sei dizer.", false},
+        {"Voc\xc3\xaa",    "Eleanor, sabe onde est\xc3\xa3o as p\xc3\xa1ginas do di\xc3\xa1rio?",                                      true},
+        {"Eleanor", "Cinco p\xc3\xa1ginas... o que sobrou dos nossos \xc3\xbaltimos dias aqui.",                          false},
+        {"Eleanor", "Uma est\xc3\xa1 aqui na biblioteca. As criaturas a guardam \xe2\x80\x94 tenha muito cuidado.",       false},
+        {"Eleanor", "H\xc3\xa1 outra l\xc3\xa1 fora, na \xc3\xa1rea al\xc3\xa9m da sala de estar. E uma na cozinha.",    false},
+        {"Eleanor", "As duas restantes est\xc3\xa3o no por\xc3\xa3o. Thomas sabe onde ficam.",                            false},
     });
     eleanor->addOption("O que aconteceu aqui?", {
         {"Voc\xc3\xaa",    "O que aconteceu com esta mans\xc3\xa3o? Com voc\xc3\xaa?",                             true},
@@ -375,14 +284,28 @@ void Game::setupBiblioteca() {
 
     // Página do diário
     if (pageItemTex.getSize().x == 0)
-        pageItemTex.loadFromFile("assets/maps/sprites/items_page.png");
+        pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
     auto savedIt = m_presentItems.find("biblioteca");
     auto itemOk  = [&](sf::Vector2f pos) -> bool {
         if (savedIt == m_presentItems.end()) return true;
         return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
     };
-    sf::IntRect pageRect(0, 0, 16, 16);
-    if (itemOk({380.f, 120.f})) items.addItem(ItemType::Page, {380.f, 120.f}, pageItemTex, pageRect);
+    sf::IntRect pageRect(0, 0, 32, 32);
+    if (itemOk({380.f, 120.f}))
+    items.addItem(ItemType::Page, {380.f, 120.f}, pageItemTex, pageRect, 999.f,
+        "Di\xc3\xa1rio \xe2\x80\x94 Primeiro Dia",
+        "A porta fechou atr\xc3\xa1s de mim. N\xc3\xa3o foi\n"
+        "o vento \xe2\x80\x94 ouvi o trinco. Algu\xc3\xa9m fechou.\n\n"
+        "Cheguei \xc3\xa0 Mans\xc3\xa3o Voss para investigar\n"
+        "o desaparecimento da fam\xc3\xad" "lia. Eleanor,\n"
+        "Thomas e a crian\xc3\xa7" "a \xe2\x80\x94 sumidos sem rastro.\n\n"
+        "Eleanor ainda est\xc3\xa1 aqui. Reconheci o\n"
+        "nome da lista, mas n\xc3\xa3o a pessoa. Ela\n"
+        "olha atrav\xc3\xa9s de mim quando falo.\n"
+        "Repete a mesma frase em voz baixa:\n"
+        "'ela n\xc3\xa3o dorme, ela n\xc3\xa3o dorme'.\n\n"
+        "Preciso encontrar uma sa\xc3\xad" "da.\n"
+        "Antes que o sol desapare\xc3\xa7" "a de vez.");
 
     // Iluminação — coordenadas fornecidas pelo usuário
     // Pares de tiles (tile*16+8 = centro do pixel)
@@ -394,6 +317,191 @@ void Game::setupBiblioteca() {
     m_lights.push_back({ {144.f, 248.f}, 65.f,  9.f, 2.5f, 1.7f }); // (8,15)+(9,15)
     // Lareira (16-17, 5-6) — chama mais quente e brilhante
     m_lights.push_back({ {272.f,  96.f}, 90.f, 18.f, 1.8f, 3.0f });
+}
+
+void Game::setupSalaEstar() {
+    // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
+    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {312.f, 240.f}, true });
+    // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
+    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {160.f, 48.f}, true });
+    // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
+    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {40.f, 120.f}, true });
+
+    m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
+    m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
+    m_lights.push_back({ {112.f, 192.f}, 50.f, 7.f, 2.6f, 2.5f });
+}
+
+void Game::setupAreaExterna() {
+    // Topo → sala de estar (cols 8-13, row 0 → pixel x=128-208, y=0)
+    transitions.push_back({ {128.f, 0.f, 80.f, 32.f}, "sala_estar", {120.f, 240.f}, true });
+
+    // Página 2: Anotações de Eleanor (placeholder, ajustar conforme o mapa)
+    if (pageItemTex.getSize().x == 0)
+        pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
+    sf::IntRect pr(0, 0, 32, 32);
+    auto savedIt = m_presentItems.find("area_externa");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    if (itemOk({320.f, 240.f})) {
+        items.addItem(ItemType::Page, {320.f, 240.f}, pageItemTex, pr, 999.f,
+            "Anota\xc3\xa7\xc3\xb5" "es de Eleanor \xe2\x80\x94 Dia Tr\xc3\xaas",
+            "Encontrei rastros no quintal.\n\n"
+            "P\xc3\xa9" "gadas no lodo, saindo da\n"
+            "porta dos fundos at\xc3\xa9 o centro\n"
+            "do jardim. E depois nada.\n\n"
+            "Como se a pessoa tivesse\n"
+            "simplesmente... parado.\n"
+            "No meio do espa\xc3\xa7o aberto.\n\n"
+            "Voltei para dentro assim que\n"
+            "o vento mudou de dire\xc3\xa7\xc3\xa3o.\n"
+            "N\xc3\xa3o sei explicar o que senti.\n\n"
+            "Mas eu sei o que ouvi.\n"
+            "E n\xc3\xa3o era vento.\n\n"
+            "\xe2\x80\x94 Eleanor");
+    }
+
+    // Quintal grande: iluminação natural (simula céu externo com mais raio)
+    m_lights.push_back({ {320.f, 144.f}, 90.f, 5.f, 1.8f, 0.0f });
+    m_lights.push_back({ {160.f, 300.f}, 80.f, 4.f, 2.0f, 1.5f });
+    m_lights.push_back({ {480.f, 300.f}, 80.f, 4.f, 2.2f, 3.0f });
+    m_lights.push_back({ {320.f, 420.f}, 75.f, 3.f, 1.9f, 2.0f });
+}
+
+void Game::setupCozinha() {
+    // Esquerda → sala de estar (col 0, rows 5-9 → pixel x=0, y=80-144)
+    transitions.push_back({ {0.f, 80.f, 16.f, 64.f}, "sala_estar", {384.f, 120.f}, true });
+
+    // Página 3: Registro de 1891 (placeholder, ajustar conforme mapa)
+    if (pageItemTex.getSize().x == 0)
+        pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
+    sf::IntRect pr(0, 0, 32, 32);
+    auto savedIt = m_presentItems.find("cozinha");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    if (itemOk({200.f, 120.f})) {
+        items.addItem(ItemType::Page, {200.f, 120.f}, pageItemTex, pr, 999.f,
+            "Registro de Constru\xc3\xa7\xc3\xa3o \xe2\x80\x94 1891",
+            "Ordem do Sr. Voss:\n"
+            "Selar o porão sul com argamassa\n"
+            "e cal virgem. Motivo n\xc3\xa3o informado.\n\n"
+            "Trabalhadores recusaram entrar\n"
+            "ap\xc3\xb3s o segundo dia.\n"
+            "Diziam ouvir vozes no interior\n"
+            "das paredes.\n\n"
+            "Trabalho conclu\xc3\xad" "do por m\xc3\xad" "m\n"
+            "e Aldric, \xc3\xba" "nicos que ficaram.\n\n"
+            "N\xc3\xa3o voltarei a este lugar.\n\n"
+            "\xe2\x80\x94 H. Brenner, mestre de obras");
+    }
+
+    m_lights.push_back({ {176.f,  80.f}, 55.f, 10.f, 2.3f, 0.0f });
+    m_lights.push_back({ {176.f, 176.f}, 50.f,  8.f, 2.1f, 1.8f });
+}
+
+void Game::setupPorao() {
+    // Volta ao hall principal
+    transitions.push_back({ {176.f, 16.f, 64.f, 32.f}, "hall_principal", {16.f, 220.f}, true });
+    // Corredor para o depósito (ajustar coords conforme mapa)
+    transitions.push_back({ {320.f, 200.f, 32.f, 48.f}, "deposito", {48.f, 120.f}, true });
+
+    // Thomas — posição placeholder (ajustar conforme mapa do porão)
+    npcTexThomas.loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
+    sf::IntRect npcRect(16, 0, 16, 24);
+    NPC* thomas = new NPC("Thomas", 120.f, 160.f, npcTexThomas, npcRect);
+    thomas->setColor(sf::Color(180, 180, 180, 200));
+    thomas->addOption("Onde est\xc3\xa1 a chave para sair?", {
+        {"Voc\xc3\xaa",   "Thomas, preciso sair. Onde est\xc3\xa1 a chave?",                            true},
+        {"Thomas", "No dep\xc3\xb3" "sito. Al\xc3\xa9m do corredor.",                                   false},
+        {"Thomas", "Atr\xc3\xa1s do espelho quebrado. Mas v\xc3\xa1 preparado.",                        false},
+        {"Thomas", "Ela acorda quando voc\xc3\xaa est\xc3\xa1 prestes a sair. N\xc3\xa3o olhe para tr\xc3\xa1s.", false},
+    });
+    thomas->addOption("Tem algum lugar seguro?", {
+        {"Voc\xc3\xaa",   "Existe algum lugar seguro nesta mans\xc3\xa3o?",                             true},
+        {"Thomas", "Seguro? Aqui n\xc3\xa3o existe isso.",                                              false},
+        {"Thomas", "Mas as sombras hesitam antes de entrar aqui. O por\xc3\xa3o as confunde.",          false},
+    });
+    npcs.push_back(thomas);
+
+    // Página 4 — Anotações de Thomas (placeholder pos, ajustar conforme mapa)
+    if (pageItemTex.getSize().x == 0)
+        pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
+    sf::IntRect pr(0, 0, 32, 32);
+    auto savedIt = m_presentItems.find("porao");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    if (itemOk({80.f, 120.f})) {
+        items.addItem(ItemType::Page, {80.f, 120.f}, pageItemTex, pr, 999.f,
+            "Anota\xc3\xa7\xc3\xb5" "es de Thomas \xe2\x80\x94 Sem Data",
+            "Observei por semanas.\n\n"
+            "As sombras evitam o por\xc3\xa3o.\n"
+            "H\xc3\xa1 algo no espelho antigo que as\n"
+            "rep\xc3\xaa" "le \xe2\x80\x94 talvez o reflexo as confunda,\n"
+            "talvez seja outra coisa. N\xc3\xa3o importa.\n"
+            "O fato \xc3\xa9: elas n\xc3\xa3o entram.\n\n"
+            "Escondi a chave da sa\xc3\xad" "da principal\n"
+            "atr\xc3\xa1s do espelho. \xc3\x89 o \xc3\xba" "nico lugar\n"
+            "que posso garantir que estar\xc3\xa1 l\xc3\xa1.\n\n"
+            "Se voc\xc3\xaa est\xc3\xa1 lendo isso, chegou at\xc3\xa9\n"
+            "aqui. Isso j\xc3\xa1 diz algo sobre voc\xc3\xaa.\n\n"
+            "V\xc3\xa1 ao dep\xc3\xb3" "sito. Pegue a chave.\n"
+            "N\xc3\xa3o pare para entender.\n"
+            "N\xc3\xa3o olhe para tr\xc3\xa1s.\n"
+            "Apenas saia.");
+    }
+
+    // Página 5 — A Última Mensagem (aciona o Boss ao ser coletada)
+    if (itemOk({200.f, 160.f})) {
+        items.addItem(ItemType::Page, {200.f, 160.f}, pageItemTex, pr, 999.f,
+            "A \xc3\x9a" "ltima Mensagem \xe2\x80\x94 M.V.",
+            "Encontrei as p\xc3\xa1ginas. Falei com todos.\n"
+            "Tinha tudo que precisava.\n\n"
+            "A sa\xc3\xad" "da estava a dez passos.\n"
+            "Senti o ar frio do lado de fora.\n"
+            "Vi a luz l\xc3\xa1 fora.\n\n"
+            "Ouvi algo atr\xc3\xa1s de mim.\n"
+            "Um som que n\xc3\xa3o era vento.\n"
+            "N\xc3\xa3o era madeira rangendo.\n\n"
+            "Olhei para tr\xc3\xa1s.\n\n"
+            "Ela estava l\xc3\xa1.\n"
+            "Sempre esteve.\n"
+            "S\xc3\xb3 estava esperando eu perceber.\n\n"
+            "Se voc\xc3\xaa encontrar isso \xe2\x80\x94\n"
+            "n\xc3\xa3o cometa o mesmo erro.\n\n"
+            "\xe2\x80\x94 M.V., novembro de 1987");
+    }
+
+    m_lights.push_back({ { 80.f,  48.f}, 45.f, 9.f, 2.3f, 0.0f });
+    m_lights.push_back({ {280.f,  48.f}, 45.f, 8.f, 2.1f, 1.5f });
+    m_lights.push_back({ {160.f, 200.f}, 50.f, 7.f, 2.5f, 2.8f });
+}
+
+void Game::setupDeposito() {
+    // Volta ao porão
+    transitions.push_back({ {16.f, 120.f, 32.f, 48.f}, "porao", {300.f, 200.f}, true });
+    // Saída da mansão (só funciona com a chave)
+    doors.push_back({ {280.f, 120.f, 32.f, 48.f}, Door::Kind::Exit });
+
+    // Chave (placeholder pos, ajustar conforme mapa)
+    if (keyItemTex.getSize().x == 0)
+        keyItemTex.loadFromFile("assets/tilesets/PropsV2.png");
+    sf::IntRect keyRect(0, 16, 16, 16);
+    auto savedIt = m_presentItems.find("deposito");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    if (itemOk({160.f, 120.f}))
+        items.addItem(ItemType::Key, {160.f, 120.f}, keyItemTex, keyRect);
+
+    m_lights.push_back({ {160.f, 80.f},  55.f, 10.f, 2.4f, 0.0f });
+    m_lights.push_back({ {160.f, 160.f}, 40.f,  8.f, 2.7f, 1.9f });
 }
 
 void Game::resetGame() {
@@ -665,6 +773,7 @@ void Game::updatePlaying(float dt) {
     checkEnemyPlayerCollision();
     checkProjectileHits();
     checkItemCollection();
+    updateObjPopup(dt);
     checkVictoryCondition();
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
@@ -826,29 +935,61 @@ void Game::checkItemCollection() {
     if (items.checkAutoCollect(pb, collected, loreTitle, loreBody)) {
         keyEPressed = true;
         switch (collected) {
-            case ItemType::Page:
+            case ItemType::Page: {
                 player.addPage();
                 audio.playSfx(SfxId::PageCollect);
-                eventQueue.enqueue("Página do diário encontrada  [" +
-                    std::to_string(player.getDiaryPages()) + "/" +
-                    std::to_string(totalPages) + "]");
+                if (player.getDiaryPages() == totalPages) {
+                    sf::Vector2f bp = player.getPosition();
+                    bp.x += 200.f;
+                    enemies.push_back(new Boss(bp.x, bp.y));
+                    eventQueue.enqueue("Algo acordou nas profundezas...");
+                    audio.playMusic(MusicTrack::Boss);
+                }
+                {
+                    std::string prog = std::to_string(player.getDiaryPages()) +
+                                       " de " + std::to_string(totalPages) +
+                                       " p\xc3\xa1" "ginas coletadas";
+                    std::string ltU  = loreTitle.empty()
+                                       ? "P\xc3\xa1" "gina do Di\xc3\xa1rio"
+                                       : loreTitle;
+                    showObjPopup(
+                        sf::String::fromUtf8(
+                            std::string("P\xc3\x81GINA DO DI\xc3\x81RIO").begin(),
+                            std::string("P\xc3\x81GINA DO DI\xc3\x81RIO").end()),
+                        sf::String::fromUtf8(ltU.begin(), ltU.end()),
+                        sf::String::fromUtf8(prog.begin(), prog.end()),
+                        sf::Color(255, 200, 55),
+                        &pageItemTex,
+                        sf::IntRect(0, 0, 32, 32));
+                }
                 if (!loreBody.empty()) {
                     pageReader.open(loreTitle, loreBody);
                     audio.playSfx(SfxId::BookOpen, 75.f);
                 }
                 break;
+            }
             case ItemType::Lamp:
                 player.addLantern();
                 audio.playSfx(SfxId::ItemCollect);
                 eventQueue.enqueue("Lamparina de sal coletada  [" +
                     std::to_string(player.getSaltLanterns()) + " lamparinas]");
                 break;
-            case ItemType::Key:
+            case ItemType::Key: {
                 player.collectKey();
                 audio.playSfx(SfxId::ItemCollect);
-                eventQueue.enqueue("Chave da mansao encontrada!");
-                eventQueue.enqueue("Encontre a saida.");
+                std::string kn = "Chave da Mans\xc3\xa3o Voss";
+                std::string ks = "Encontre a sa\xc3\xad" "da \xe2\x86\x92";
+                showObjPopup(
+                    sf::String::fromUtf8(
+                        std::string("CHAVE ENCONTRADA").begin(),
+                        std::string("CHAVE ENCONTRADA").end()),
+                    sf::String::fromUtf8(kn.begin(), kn.end()),
+                    sf::String::fromUtf8(ks.begin(), ks.end()),
+                    sf::Color(80, 215, 120),
+                    &keyItemTex,
+                    sf::IntRect(0, 16, 16, 16));
                 break;
+            }
             case ItemType::Heal:
                 player.addPotion();
                 audio.playSfx(SfxId::ItemCollect);
@@ -954,8 +1095,10 @@ void Game::checkTransitions() {
         prox.width += 24.f; prox.height += 24.f;
         if (!prox.intersects(pb)) continue;
 
-        m_doorNearby = true;
-        m_doorPromptPos = { t.trigger.left + t.trigger.width * 0.5f,
+        m_doorNearby    = true;
+        m_doorPromptPos = (t.promptPos.x != 0.f || t.promptPos.y != 0.f)
+            ? t.promptPos
+            : sf::Vector2f{ t.trigger.left + t.trigger.width * 0.5f,
                             t.trigger.top - 12.f };
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && !keyEPressed) {
@@ -1074,29 +1217,78 @@ void Game::drawVignette(sf::Color tint) {
 
 
 void Game::renderMenu() {
+    // Gradiente de fundo: azul-escuro puro no topo, levemente mais quente embaixo
+    {
+        sf::VertexArray bg(sf::Quads, 4);
+        bg[0] = {{0.f, 0.f},   sf::Color(5, 7, 14)};
+        bg[1] = {{800.f, 0.f}, sf::Color(5, 7, 14)};
+        bg[2] = {{800.f, 600.f}, sf::Color(12, 11, 20)};
+        bg[3] = {{0.f,   600.f}, sf::Color(12, 11, 20)};
+        window.draw(bg);
+    }
     // Partículas flutuantes
     for (const auto& p : dustParticles) {
-        sf::CircleShape dot(1.3f);
+        sf::CircleShape dot(1.5f);
+        dot.setPointCount(8);
         dot.setPosition(p.position);
-        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.38f)));
+        dot.setFillColor(sf::Color(210, 210, 195, static_cast<sf::Uint8>(p.alpha * 0.42f)));
         window.draw(dot);
     }
 
-    // Título HOLLOW — sombra + texto principal com flicker
+    // Layout fixo — não depende de getGlobalBounds().height que varia com a fonte
+    const float SEP_Y  = 286.f;
+    const float OPT1_Y = 348.f;
+    const float OPT_GAP = 74.f;
+    const float HINT_Y = 508.f;
+
     float flicker = 0.92f + 0.08f * std::sin(flickerTimer * 0.7f);
+    float breathe = 0.5f  + 0.5f  * std::sin(flickerTimer * 0.9f);
+
+    // Aura difusa atrás do título (retângulo suave com alpha baixo)
+    {
+        sf::FloatRect tb = titleText.getGlobalBounds();
+        float cx = tb.left + tb.width * 0.5f;
+        float cy = tb.top  + tb.height * 0.5f;
+
+        // Halo externo grande
+        sf::RectangleShape auraOuter({tb.width + 140.f, tb.height + 100.f});
+        auraOuter.setOrigin((tb.width + 140.f) * 0.5f, (tb.height + 100.f) * 0.5f);
+        auraOuter.setPosition(cx, cy);
+        auraOuter.setFillColor(sf::Color(50, 55, 80, static_cast<sf::Uint8>(10.f + 8.f * breathe)));
+        window.draw(auraOuter);
+
+        // Halo interno mais definido
+        sf::RectangleShape auraInner({tb.width + 60.f, tb.height + 40.f});
+        auraInner.setOrigin((tb.width + 60.f) * 0.5f, (tb.height + 40.f) * 0.5f);
+        auraInner.setPosition(cx, cy);
+        auraInner.setFillColor(sf::Color(80, 85, 120, static_cast<sf::Uint8>(14.f + 10.f * breathe)));
+        window.draw(auraInner);
+
+        // 8 cópias em anel a 2px de raio — cria bloom suave
+        for (int i = 0; i < 8; ++i) {
+            float angle = i * (3.14159f / 4.f);
+            sf::Text glowCopy = titleText;
+            glowCopy.move(2.f * std::cos(angle), 2.f * std::sin(angle));
+            glowCopy.setFillColor(sf::Color(95, 100, 140, static_cast<sf::Uint8>(16.f + 8.f * breathe)));
+            window.draw(glowCopy);
+        }
+    }
+
+    // Sombra do título
     sf::Text titleShadow = titleText;
-    titleShadow.move(0.f, 5.f);
-    titleShadow.setFillColor(sf::Color(40, 50, 65, 70));
+    titleShadow.move(0.f, 4.f);
+    titleShadow.setFillColor(sf::Color(0, 0, 0, 90));
     window.draw(titleShadow);
+
+    // Título principal com flicker
     sf::Text titleCopy = titleText;
-    titleCopy.setFillColor(sf::Color(120, 122, 132, static_cast<sf::Uint8>(210.f * flicker)));
+    titleCopy.setFillColor(sf::Color(128, 130, 145, static_cast<sf::Uint8>(215.f * flicker)));
     window.draw(titleCopy);
 
-    // Linha separadora
-    float lineY = titleText.getPosition().y + titleText.getGlobalBounds().height + 14.f;
-    sf::RectangleShape sep(sf::Vector2f(200.f, 2.f));
-    sep.setPosition(400.f - 100.f, lineY);
-    sep.setFillColor(sf::Color(90, 90, 100, 140));
+    // Linha separadora — posição FIXA
+    sf::RectangleShape sep(sf::Vector2f(260.f, 1.f));
+    sep.setPosition(400.f - 130.f, SEP_Y);
+    sep.setFillColor(sf::Color(80, 82, 95, 130));
     window.draw(sep);
 
     // Opções de menu
@@ -1109,7 +1301,7 @@ void Game::renderMenu() {
         { "SAIR",                      1, sf::Color(236, 155, 155, selAlpha) }
     };
 
-    float optY = lineY + 46.f;
+    float optY = OPT1_Y;
     for (const auto& item : items) {
         bool sel = (mainMenuOption == item.idx);
 
@@ -1119,7 +1311,7 @@ void Game::renderMenu() {
         opt.setLetterSpacing(2.0f);
         std::string ls = item.label;
         opt.setString(sf::String::fromUtf8(ls.begin(), ls.end()));
-        opt.setFillColor(sel ? item.selCol : sf::Color(120, 120, 132, 190));
+        opt.setFillColor(sel ? item.selCol : sf::Color(105, 108, 122, 185));
         float ox = 400.f - opt.getGlobalBounds().width / 2.f;
         opt.setPosition(ox, optY);
         window.draw(opt);
@@ -1131,24 +1323,24 @@ void Game::renderMenu() {
             arr.setFillColor(item.selCol);
             std::string la = "\xe2\x80\xba", ra = "\xe2\x80\xb9";
             arr.setString(sf::String::fromUtf8(la.begin(), la.end()));
-            arr.setPosition(ox - arr.getGlobalBounds().width - 10.f, optY + 1.f);
+            arr.setPosition(ox - arr.getGlobalBounds().width - 12.f, optY + 1.f);
             window.draw(arr);
             arr.setString(sf::String::fromUtf8(ra.begin(), ra.end()));
-            arr.setPosition(ox + opt.getGlobalBounds().width + 10.f, optY + 1.f);
+            arr.setPosition(ox + opt.getGlobalBounds().width + 12.f, optY + 1.f);
             window.draw(arr);
         }
 
-        optY += 46.f;
+        optY += OPT_GAP;
     }
 
     // Dica de controles
     sf::Text hint;
     hint.setFont(font);
     hint.setCharacterSize(13);
-    hint.setFillColor(sf::Color(70, 72, 80, 180));
+    hint.setFillColor(sf::Color(68, 70, 82, 175));
     std::string hs = "W / S  mover   \xc2\xb7   ENTER  confirmar";
     hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
-    hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, 430.f);
+    hint.setPosition(400.f - hint.getGlobalBounds().width / 2.f, HINT_Y);
     window.draw(hint);
 
     // Rodapé
@@ -1183,7 +1375,7 @@ void Game::updateIntro(float dt) {
             if (m_introOverlay < 0.f) m_introOverlay = 0.f;
         }
 
-        if (m_introPhase <= 5 && m_introOverlay <= 0.f) {
+        if (m_introPhase <= 6 && m_introOverlay <= 0.f) {
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) ||
                  sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) && !keyEnterPressed) {
                 m_introFadingOut = true;
@@ -1197,7 +1389,7 @@ void Game::updateIntro(float dt) {
                 m_gateProgress = std::min(1.f, m_gateProgress + dt * 0.35f);
         }
 
-        if (m_introPhase == 6 && m_introOverlay <= 0.f) {
+        if (m_introPhase == 7 && m_introOverlay <= 0.f) {
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
                  sf::Keyboard::isKeyPressed(sf::Keyboard::A)) && !keyUpPressed) {
                 characterOption = 0;
@@ -1223,7 +1415,7 @@ void Game::updateIntro(float dt) {
             }
         }
 
-        if (m_introPhase == 7 && m_introOverlay <= 0.f) {
+        if (m_introPhase == 8 && m_introOverlay <= 0.f) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) && !keyEnterPressed) {
                 m_introFadingOut = true;
                 keyEnterPressed  = true;
@@ -1238,7 +1430,7 @@ void Game::updateIntro(float dt) {
             m_gateProgress   = 0.f;
             m_gateTimer      = 0.f;
 
-            if (m_introPhase > 7) {
+            if (m_introPhase > 8) {
                 player.load(selectedSkin == 1 ? "assets/maps/sprites/player/player_f.png"
                                               : "assets/maps/sprites/player/player_m.png");
                 state = GameState::Playing;
@@ -1390,14 +1582,28 @@ void Game::renderIntro() {
 
     // --- Phases 2-3: mansion silhouette ---
     if (m_introPhase == 2 || m_introPhase == 3) {
-        filledRect(0.f, 0.f, W, H, sf::Color(7, 10, 18));
+        // Gradiente de céu: azul muito escuro em cima, ligeiramente mais quente no horizonte
+        {
+            sf::VertexArray sky(sf::Quads, 4);
+            sky[0] = {{0.f,0.f},  sf::Color(4, 6, 14)};
+            sky[1] = {{W, 0.f},   sf::Color(4, 6, 14)};
+            sky[2] = {{W, H},     sf::Color(10, 13, 24)};
+            sky[3] = {{0.f, H},   sf::Color(10, 13, 24)};
+            window.draw(sky);
+        }
         float mr = 34.f, mx = W*0.74f, my = H*0.11f;
-        sf::CircleShape mglow(mr*1.6f);
-        mglow.setFillColor(sf::Color(150,165,200,18));
-        mglow.setPosition(mx-mr*1.6f, my-mr*1.6f);
-        window.draw(mglow);
+        // Halo externo difuso da lua (3 camadas)
+        for (int gi = 3; gi >= 1; --gi) {
+            float gr = mr * (1.f + gi * 0.7f);
+            sf::CircleShape g(gr);
+            g.setPointCount(64);
+            g.setFillColor(sf::Color(160,175,210, sf::Uint8(6 * gi)));
+            g.setPosition(mx-gr, my-gr);
+            window.draw(g);
+        }
         sf::CircleShape moon(mr);
-        moon.setFillColor(sf::Color(216,218,226));
+        moon.setPointCount(64);
+        moon.setFillColor(sf::Color(222,224,232));
         moon.setPosition(mx-mr, my-mr);
         window.draw(moon);
         float horizY = H * (m_introPhase == 2 ? 0.55f : 0.50f);
@@ -1425,14 +1631,26 @@ void Game::renderIntro() {
 
     // --- Phase 4: gate opening ---
     if (m_introPhase == 4) {
-        filledRect(0.f, 0.f, W, H, sf::Color(7, 10, 18));
+        {
+            sf::VertexArray sky(sf::Quads, 4);
+            sky[0] = {{0.f,0.f},  sf::Color(4, 6, 14)};
+            sky[1] = {{W, 0.f},   sf::Color(4, 6, 14)};
+            sky[2] = {{W, H},     sf::Color(9, 12, 22)};
+            sky[3] = {{0.f, H},   sf::Color(9, 12, 22)};
+            window.draw(sky);
+        }
         float mr = 28.f, mx = W*0.64f, my = H*0.11f;
-        sf::CircleShape mglow(mr*1.5f);
-        mglow.setFillColor(sf::Color(150,165,200,16));
-        mglow.setPosition(mx-mr*1.5f, my-mr*1.5f);
-        window.draw(mglow);
+        for (int gi = 3; gi >= 1; --gi) {
+            float gr = mr * (1.f + gi * 0.7f);
+            sf::CircleShape g(gr);
+            g.setPointCount(64);
+            g.setFillColor(sf::Color(160,175,210, sf::Uint8(5 * gi)));
+            g.setPosition(mx-gr, my-gr);
+            window.draw(g);
+        }
         sf::CircleShape moon(mr);
-        moon.setFillColor(sf::Color(210,212,220));
+        moon.setPointCount(64);
+        moon.setFillColor(sf::Color(215,218,226));
         moon.setPosition(mx-mr, my-mr);
         window.draw(moon);
         drawHills(H * 0.48f);
@@ -1466,115 +1684,305 @@ void Game::renderIntro() {
         pillar(pLeft);
         pillar(pRight);
 
-        // Gate bars
-        float gateL = pLeft + pW, gateCenter = W*0.5f;
+        // Gate bars — abre de DENTRO para FORA (cada metade recua em direção ao seu pilar)
+        float gateL = pLeft + pW, gateRight = pRight;
+        float gateCenter = W*0.5f;
         float gateTop = H*0.08f, gateH = H*0.92f;
-        float s = 1.f - m_gateProgress;
         float halfSpan = gateCenter - gateL;
-        float curHalf  = halfSpan * s;
-        float leftEdge = gateCenter - curHalf;
+        float prog = m_gateProgress;
         sf::Color barCol(11,12,18);
-        // rails
-        filledRect(leftEdge, gateTop, curHalf, 6.f, barCol);
-        filledRect(leftEdge, gateTop+gateH*0.46f, curHalf, 5.f, barCol);
-        filledRect(leftEdge, gateTop+gateH-6.f, curHalf, 6.f, barCol);
-        filledRect(gateCenter, gateTop, curHalf, 6.f, barCol);
-        filledRect(gateCenter, gateTop+gateH*0.46f, curHalf, 5.f, barCol);
-        filledRect(gateCenter, gateTop+gateH-6.f, curHalf, 6.f, barCol);
-        // vertical bars
-        for (int i = 0; i < 7; ++i) {
-            float frac = (float)i / 6.f;
-            float bw = std::max(1.f, 6.f * s);
-            filledRect(leftEdge + frac*curHalf - bw*0.5f, gateTop, bw, gateH, barCol);
-            filledRect(gateCenter + frac*curHalf - bw*0.5f, gateTop, bw, gateH, barCol);
+
+        // METADE ESQUERDA: dobradiça em gateL, borda direita recua de gateCenter → gateL
+        float leftW = halfSpan * (1.f - prog);
+        if (leftW > 1.f) {
+            filledRect(gateL, gateTop,              leftW, 6.f, barCol);
+            filledRect(gateL, gateTop+gateH*0.46f,  leftW, 5.f, barCol);
+            filledRect(gateL, gateTop+gateH-6.f,    leftW, 6.f, barCol);
+            for (int i = 0; i < 7; ++i) {
+                float bx = gateL + (i / 6.f) * halfSpan;
+                if (bx < gateL + leftW)
+                    filledRect(bx - 3.f, gateTop, 6.f, gateH, barCol);
+            }
         }
-        // light in gap
-        if (m_gateProgress > 0.05f) {
-            float gapW = (gateCenter - gateL) * m_gateProgress * 0.9f;
-            filledRect(gateCenter - gapW, gateTop, gapW*2.f, gateH,
-                       sf::Color(160,185,230, sf::Uint8(28*m_gateProgress)));
+
+        // METADE DIREITA: dobradiça em gateRight, borda esquerda avança de gateCenter → gateRight
+        float rightStart = gateCenter + halfSpan * prog;
+        float rightW     = halfSpan * (1.f - prog);
+        if (rightW > 1.f) {
+            filledRect(rightStart, gateTop,              rightW, 6.f, barCol);
+            filledRect(rightStart, gateTop+gateH*0.46f,  rightW, 5.f, barCol);
+            filledRect(rightStart, gateTop+gateH-6.f,    rightW, 6.f, barCol);
+            for (int i = 0; i < 7; ++i) {
+                float bx = gateCenter + (i / 6.f) * halfSpan;
+                if (bx >= rightStart)
+                    filledRect(bx - 3.f, gateTop, 6.f, gateH, barCol);
+            }
+        }
+
+        // Luz no vão central
+        if (prog > 0.05f) {
+            float gapW = halfSpan * 2.f * prog;
+            filledRect(gateCenter - gapW * 0.5f, gateTop, gapW, gateH,
+                       sf::Color(160,185,230, sf::Uint8(28*prog)));
         }
         drawRain();
     }
 
-    // --- Phase 5: interior ---
+    // --- Phase 5: porta frontal da mansão (grande e elegante) ---
     if (m_introPhase == 5) {
-        filledRect(0.f, 0.f, W, H, sf::Color(6, 8, 14));
-        // Window
-        float wx = W*0.10f, wy = H*0.13f, ww = W*0.27f, wh = H*0.50f;
-        filledRect(wx, wy, ww, wh, sf::Color(30,45,80,200));
-        filledRect(wx+ww*0.55f, wy+wh*0.08f, ww*0.28f, ww*0.18f, sf::Color(160,175,210,50));
-        filledRect(wx-6.f, wy-6.f, ww+12.f, 6.f, sf::Color(20,22,28));
-        filledRect(wx-6.f, wy+wh, ww+12.f, 6.f, sf::Color(20,22,28));
-        filledRect(wx-6.f, wy-6.f, 6.f, wh+12.f, sf::Color(20,22,28));
-        filledRect(wx+ww, wy-6.f, 6.f, wh+12.f, sf::Color(20,22,28));
-        filledRect(wx+ww*0.5f-3.f, wy, 6.f, wh, sf::Color(20,22,28));
-        filledRect(wx, wy+wh*0.5f-3.f, ww, 6.f, sf::Color(20,22,28));
-        // Floor light
-        sf::ConvexShape fl(4);
-        fl.setPoint(0,{wx,wy+wh}); fl.setPoint(1,{wx+ww,wy+wh});
-        fl.setPoint(2,{wx+ww*1.4f,H}); fl.setPoint(3,{wx-ww*0.2f,H});
-        fl.setFillColor(sf::Color(120,145,200,18));
-        window.draw(fl);
-        // Figure
-        float fx = W*0.64f, fy = H*0.38f;
-        sf::CircleShape head(22.f);
-        head.setFillColor(sf::Color(6,7,10));
-        head.setPosition(fx-22.f, fy);
-        window.draw(head);
-        sf::ConvexShape body(4);
-        body.setPoint(0,{fx-18.f,fy+42.f}); body.setPoint(1,{fx+18.f,fy+42.f});
-        body.setPoint(2,{fx+28.f,fy+175.f}); body.setPoint(3,{fx-28.f,fy+175.f});
-        body.setFillColor(sf::Color(5,6,9));
-        window.draw(body);
-        // Candle
-        float cx2 = W*0.83f, cy2 = H*0.72f;
-        float cf = 0.7f + 0.3f * std::sin(flickerTimer * 5.7f);
-        sf::CircleShape cglow(28.f*cf);
-        cglow.setFillColor(sf::Color(255,140,30, sf::Uint8(28*cf)));
-        cglow.setPosition(cx2-28.f*cf, cy2-28.f*cf);
-        window.draw(cglow);
-        sf::CircleShape flame(7.f*cf);
-        flame.setFillColor(sf::Color(255,160,50, sf::Uint8(200*cf)));
-        flame.setPosition(cx2-7.f*cf, cy2-7.f*cf);
-        window.draw(flame);
-        filledRect(cx2-3.f, cy2, 6.f, 18.f, sf::Color(200,195,170));
+        // Fundo noturno
+        {
+            sf::VertexArray sky(sf::Quads, 4);
+            sky[0] = {{0.f, 0.f}, sf::Color(4, 6, 14)};
+            sky[1] = {{W,   0.f}, sf::Color(4, 6, 14)};
+            sky[2] = {{W,   H},   sf::Color(8, 10, 20)};
+            sky[3] = {{0.f, H},   sf::Color(8, 10, 20)};
+            window.draw(sky);
+        }
+        // Lua
+        float mr = 22.f, mx = W*0.78f, my = H*0.10f;
+        for (int gi = 3; gi >= 1; --gi) {
+            float gr = mr * (1.f + gi * 0.7f);
+            sf::CircleShape g(gr); g.setPointCount(64);
+            g.setFillColor(sf::Color(160,175,210, sf::Uint8(5*gi)));
+            g.setPosition(mx-gr, my-gr); window.draw(g);
+        }
+        { sf::CircleShape moon(mr); moon.setPointCount(64);
+          moon.setFillColor(sf::Color(215,218,226));
+          moon.setPosition(mx-mr, my-mr); window.draw(moon); }
+
+        // Fachada de pedra (muro)
+        filledRect(0.f, H*0.18f, W, H*0.82f, sf::Color(16, 18, 24));
+        // Textura: linhas horizontais de pedra
+        for (int i = 0; i < 22; ++i)
+            filledRect(0.f, H*0.18f + i*22.f, W, 1.5f, sf::Color(22,25,33,80));
+
+        // Porta: arco gótico central
+        float dw = 130.f, dh = 260.f;
+        float dx = W*0.5f - dw*0.5f, dy = H*0.18f + 30.f;
+        sf::Color stoneCol(28, 31, 40);
+        sf::Color doorCol(8, 6, 4);
+
+        // Pilastras laterais
+        filledRect(dx - 22.f, dy, 22.f, dh + 20.f, stoneCol);
+        filledRect(dx + dw,   dy, 22.f, dh + 20.f, stoneCol);
+        // Detalhes das pilastras (friso)
+        filledRect(dx - 26.f, dy + dh*0.3f, 30.f, 6.f, sf::Color(35,38,48));
+        filledRect(dx - 26.f, dy + dh*0.6f, 30.f, 6.f, sf::Color(35,38,48));
+        filledRect(dx + dw - 4.f, dy + dh*0.3f, 30.f, 6.f, sf::Color(35,38,48));
+        filledRect(dx + dw - 4.f, dy + dh*0.6f, 30.f, 6.f, sf::Color(35,38,48));
+
+        // Arco (semi-círculo usando VertexArray TriangleFan)
+        {
+            const int SEGS = 24;
+            sf::VertexArray arch(sf::TriangleFan, SEGS + 2);
+            float archCx = W*0.5f, archCy = dy + dw*0.5f;
+            float archR  = dw*0.5f + 12.f;
+            arch[0] = {{archCx, archCy}, stoneCol};
+            for (int i = 0; i <= SEGS; ++i) {
+                float a = 3.14159f + 3.14159f * i / SEGS;
+                arch[i+1] = {{archCx + archR * std::cos(a),
+                               archCy + archR * std::sin(a)}, stoneCol};
+            }
+            window.draw(arch);
+        }
+        // Interior do arco (abertura)
+        {
+            const int SEGS = 24;
+            sf::VertexArray archInner(sf::TriangleFan, SEGS + 2);
+            float archCx = W*0.5f, archCy = dy + dw*0.5f;
+            float archR  = dw*0.5f;
+            archInner[0] = {{archCx, archCy}, doorCol};
+            for (int i = 0; i <= SEGS; ++i) {
+                float a = 3.14159f + 3.14159f * i / SEGS;
+                archInner[i+1] = {{archCx + archR * std::cos(a),
+                                   archCy + archR * std::sin(a)}, doorCol};
+            }
+            window.draw(archInner);
+        }
+
+        // Corpo da porta (parte retangular abaixo do arco)
+        filledRect(dx, dy + dw*0.5f, dw, dh - dw*0.5f, doorCol);
+        // Friso superior (verga)
+        filledRect(dx - 22.f, dy + dw*0.5f - 6.f, dw + 44.f, 10.f, stoneCol);
+
+        // Painéis decorativos da porta (2 painéis)
+        sf::Color panelCol(12, 10, 7);
+        filledRect(dx + 10.f, dy + dw*0.5f + 12.f, dw*0.5f - 14.f, dh*0.32f, panelCol);
+        filledRect(dx + dw*0.5f + 4.f, dy + dw*0.5f + 12.f, dw*0.5f - 14.f, dh*0.32f, panelCol);
+        filledRect(dx + 10.f, dy + dw*0.5f + dh*0.37f, dw*0.5f - 14.f, dh*0.32f, panelCol);
+        filledRect(dx + dw*0.5f + 4.f, dy + dw*0.5f + dh*0.37f, dw*0.5f - 14.f, dh*0.32f, panelCol);
+
+        // Divisória central da porta (linha vertical)
+        filledRect(W*0.5f - 2.f, dy + dw*0.5f, 4.f, dh - dw*0.5f, sf::Color(6,5,3));
+
+        // Aldrava / puxador (centro)
+        float kx = W*0.5f - 6.f, ky = dy + dh*0.65f;
+        filledRect(kx, ky, 5.f, 12.f, sf::Color(45,42,36));
+        filledRect(kx + dw*0.5f + 1.f, ky, 5.f, 12.f, sf::Color(45,42,36));
+
+        // Fanlight / janela semicircular acima do arco
+        {
+            const int SEGS = 16;
+            sf::VertexArray fan(sf::TriangleFan, SEGS + 2);
+            float fcx = W*0.5f, fcy = dy + dw*0.5f;
+            float fr  = dw*0.5f - 8.f;
+            fan[0] = {{fcx, fcy}, sf::Color(40,60,100,120)};
+            for (int i = 0; i <= SEGS; ++i) {
+                float a = 3.14159f + 3.14159f * i / SEGS;
+                fan[i+1] = {{fcx + fr*std::cos(a), fcy + fr*std::sin(a)},
+                             sf::Color(60,90,150,60)};
+            }
+            window.draw(fan);
+            // Ferros radiais do fanlight
+            for (int i = 1; i < SEGS; i += 4) {
+                float a = 3.14159f + 3.14159f * i / SEGS;
+                sf::RectangleShape rod({fr, 2.f});
+                rod.setOrigin(0.f, 1.f);
+                rod.setPosition(fcx, fcy);
+                rod.setRotation(a * 180.f / 3.14159f);
+                rod.setFillColor(sf::Color(22,24,30,180));
+                window.draw(rod);
+            }
+        }
+
+        // Lanternas de ferro em cada pilastra
+        float lanternFlicker = 0.7f + 0.3f * std::sin(flickerTimer * 4.2f);
+        for (int side = -1; side <= 1; side += 2) {
+            float lx = W*0.5f + side * (dw*0.5f + 55.f);
+            float ly = dy + dh*0.3f;
+            // Corpo da lanterna
+            filledRect(lx - 7.f, ly, 14.f, 22.f, sf::Color(20,22,28));
+            // Chama
+            sf::CircleShape flame(4.f * lanternFlicker);
+            flame.setPointCount(32);
+            flame.setFillColor(sf::Color(255,160,50, sf::Uint8(180*lanternFlicker)));
+            flame.setPosition(lx - 4.f*lanternFlicker, ly - 4.f*lanternFlicker);
+            window.draw(flame);
+            // Halo
+            sf::CircleShape halo(14.f * lanternFlicker);
+            halo.setPointCount(32);
+            halo.setFillColor(sf::Color(255,130,20, sf::Uint8(18*lanternFlicker)));
+            halo.setPosition(lx - 14.f*lanternFlicker, ly - 14.f*lanternFlicker);
+            window.draw(halo);
+            // Haste da lanterna
+            filledRect(lx - 1.5f, dy + dh*0.15f, 3.f, dh*0.14f, sf::Color(20,22,28));
+        }
+
+        // Degraus de pedra (3 degraus em perspectiva)
+        sf::Color stepCol(20, 22, 30);
+        for (int i = 0; i < 3; ++i) {
+            float sw = dw + 44.f + i*28.f;
+            filledRect(W*0.5f - sw*0.5f, dy + dh + i*12.f + 20.f, sw, 12.f,
+                       sf::Color(stepCol.r + i*3, stepCol.g + i*3, stepCol.b + i*4));
+        }
+
+        // Névoa rasteira
+        float fogX = std::sin(flickerTimer * 0.2f) * 12.f;
+        filledRect(-40.f+fogX, H*0.74f, W+80.f, 80.f, sf::Color(110,120,145,14));
+        filledRect(-40.f-fogX, H*0.82f, W+80.f, 60.f, sf::Color(100,110,135,10));
+    }
+
+    // --- Phase 6: A Criança no vestíbulo (interior sombrio) ---
+    if (m_introPhase == 6) {
+        filledRect(0.f, 0.f, W, H, sf::Color(5, 7, 12));
+
+        // Corredor com perspectiva sugerida (fundo mais claro, bordas escuras)
+        {
+            sf::VertexArray corridor(sf::Quads, 4);
+            corridor[0] = {{W*0.2f, H*0.6f}, sf::Color(10,12,18)};
+            corridor[1] = {{W*0.8f, H*0.6f}, sf::Color(10,12,18)};
+            corridor[2] = {{W*1.1f, H},      sf::Color(6, 8, 14)};
+            corridor[3] = {{-W*0.1f, H},     sf::Color(6, 8, 14)};
+            window.draw(corridor);
+        }
+        // Rodapé / piso
+        filledRect(0.f, H*0.74f, W, H*0.26f, sf::Color(14,16,22));
+        // Linha do horizonte do corredor
+        filledRect(0.f, H*0.74f, W, 2.f, sf::Color(25,28,36,120));
+
+        // Vela no chão — iluminação suave
+        float cx3 = W*0.62f, cy3 = H*0.70f;
+        float cf3 = 0.65f + 0.35f * std::sin(flickerTimer * 6.1f);
+        for (int gi = 3; gi >= 1; --gi) {
+            float gr = 55.f * cf3 * (0.5f + gi * 0.55f);
+            sf::CircleShape cg(gr); cg.setPointCount(32);
+            cg.setFillColor(sf::Color(255,120,15, sf::Uint8(8 * gi * cf3)));
+            cg.setPosition(cx3-gr, cy3-gr); window.draw(cg);
+        }
+        { sf::CircleShape fl(5.f*cf3); fl.setPointCount(32);
+          fl.setFillColor(sf::Color(255,190,80, sf::Uint8(200*cf3)));
+          fl.setPosition(cx3-5.f*cf3, cy3-5.f*cf3); window.draw(fl); }
+        filledRect(cx3-2.5f, cy3, 5.f, 15.f, sf::Color(190,185,165));
+
+        // Silhueta de A Criança — pequena, ao fundo do corredor
+        float childX = W*0.47f, childY = H*0.44f;
+        float childScale = 0.62f;  // menor = parece estar no fundo
+        float childPulse = 0.7f + 0.3f * std::sin(flickerTimer * 1.5f);
+        sf::Uint8 ca = sf::Uint8(180 * childPulse);
+        sf::Color childCol(10, 12, 18, ca);
+        // Cabeça
+        sf::CircleShape chead(16.f * childScale);
+        chead.setPointCount(64);
+        chead.setFillColor(childCol);
+        chead.setPosition(childX - 16.f*childScale, childY);
+        window.draw(chead);
+        // Corpo
+        sf::ConvexShape cbody(4);
+        cbody.setPoint(0, {childX - 11.f*childScale, childY + 30.f*childScale});
+        cbody.setPoint(1, {childX + 11.f*childScale, childY + 30.f*childScale});
+        cbody.setPoint(2, {childX + 14.f*childScale, childY + 80.f*childScale});
+        cbody.setPoint(3, {childX - 14.f*childScale, childY + 80.f*childScale});
+        cbody.setFillColor(childCol);
+        window.draw(cbody);
+
+        // Aura etérea em volta da criança (suave)
+        sf::CircleShape aura(40.f * childScale);
+        aura.setPointCount(32);
+        aura.setFillColor(sf::Color(120,130,170, sf::Uint8(12 * childPulse)));
+        aura.setPosition(childX - 40.f*childScale, childY - 10.f*childScale);
+        window.draw(aura);
     }
 
     // --- Dust particles (all phases) ---
     for (const auto& p : dustParticles) {
-        sf::CircleShape dot(1.2f);
+        sf::CircleShape dot(1.5f);
+        dot.setPointCount(8);
         dot.setPosition(p.position);
-        dot.setFillColor(sf::Color(200, 200, 180, static_cast<sf::Uint8>(p.alpha * 0.32f)));
+        dot.setFillColor(sf::Color(210, 210, 195, static_cast<sf::Uint8>(p.alpha * 0.36f)));
         window.draw(dot);
     }
 
     // --- Phases 1-5: narrative text ---
     struct IntroPhaseText { const char* main; const char* sub; };
     static const IntroPhaseText phases[] = {
-        {
-            "Em dois meses, tr\xc3\xaas pesquisadores\nentraram na Mans\xc3\xa3o Voss.",
-            "Nenhum deles voltou."
+        {   // 1
+            "Na noite de 14 de novembro de 1987,\na fam\xc3\xad" "lia Voss desapareceu.",
+            "Eleanor, Thomas e a crian\xc3\xa7" "a \xe2\x80\x94 nenhum rastro."
         },
-        {
-            "O munic\xc3\xadpio te enviou para\ndescobrir o que aconteceu.",
-            "Catalogar o acervo. Encontrar os que sumiram."
+        {   // 2
+            "O munic\xc3\xad" "pio te enviou como investigador\npara descobrir o que aconteceu.",
+            "Uma fam\xc3\xad" "lia inteira. Sumida dentro de casa."
         },
-        {
-            "A casa surge entre os pinheiros \xe2\x80\x94\nvelha, im\xc3\xb3vel, atenta.",
+        {   // 3
+            "A Mans\xc3\xa3o Voss surge entre os pinheiros \xe2\x80\x94\nvelha, im\xc3\xb3vel, atenta.",
             "Erguida em 1891 sobre algo que jamais\ndeveria ter sido perturbado."
         },
-        {
-            "Voc\xc3\xaa empurra a porta. O ar l\xc3\xa1 dentro\n\xc3\xa9 frio como pedra.",
-            "Atr\xc3\xa1s de voc\xc3\xaa, o trinco range. N\xc3\xa3o foi o vento."
+        {   // 4
+            "O port\xc3\xa3o de ferro cede com um rangido longo.",
+            "Seja o que for que aconteceu \xc3\xa0 fam\xc3\xad" "lia Voss,\na resposta est\xc3\xa1 l\xc3\xa1 dentro."
         },
-        {
-            "No escuro, uma voz repete baixinho:",
-            "\xe2\x80\x9c" "ela n\xc3\xa3o dorme\xe2\x80\xa6 ela n\xc3\xa3o dorme\xe2\x80\xa6\xe2\x80\x9d"
+        {   // 5  (porta frontal da mansão)
+            "A porta da mans\xc3\xa3o \xe2\x80\x94 alta, pesada, imponente.",
+            "Voc\xc3\xaa a empurra. O ar l\xc3\xa1 dentro \xc3\xa9 frio como pedra."
+        },
+        {   // 6  (A Criança no vestíbulo)
+            "No vest\xc3\xad" "bulo, uma voz de crian\xc3\xa7" "a ecoa sozinha.",
+            "A crian\xc3\xa7" "a para. Olha para voc\xc3\xaa. E corre."
         }
     };
 
-    if (m_introPhase >= 1 && m_introPhase <= 5) {
+    if (m_introPhase >= 1 && m_introPhase <= 6) {
         const auto& t = phases[m_introPhase - 1];
         bool hasScene = (m_introPhase >= 2);
         float textY = hasScene ? H - 160.f : H * 0.38f;
@@ -1615,8 +2023,8 @@ void Game::renderIntro() {
         window.draw(hint);
     }
 
-    // --- Phase 6: character select ---
-    if (m_introPhase == 6) {
+    // --- Phase 7: character select ---
+    if (m_introPhase == 7) {
         sf::Text selTitle;
         selTitle.setFont(m_cinzel);
         selTitle.setCharacterSize(20);
@@ -1693,8 +2101,8 @@ void Game::renderIntro() {
         window.draw(hint);
     }
 
-    // --- Phase 7: character confirmation ---
-    if (m_introPhase == 7) {
+    // --- Phase 8: character confirmation ---
+    if (m_introPhase == 8) {
         sf::Texture texC;
         const char* spritePath = (selectedSkin == 1)
             ? "assets/maps/sprites/player/player_f.png"
@@ -1722,7 +2130,7 @@ void Game::renderIntro() {
         desc.setCharacterSize(16);
         desc.setStyle(sf::Text::Italic);
         desc.setFillColor(sf::Color(115,118,128,200));
-        std::string ds = "A mans\xc3\xa3o te espera. Reina os di\xc3\xa1rios, encontre a chave"
+        std::string ds = "A mans\xc3\xa3o te espera. Re\xc3\xba" "na os di\xc3\xa1rios, encontre a chave"
                          " \xe2\x80\x94 e escape antes que ela perceba voc\xc3\xaa.";
         desc.setString(sf::String::fromUtf8(ds.begin(), ds.end()));
         desc.setPosition(400.f - desc.getGlobalBounds().width*0.5f, 298.f);
@@ -1748,6 +2156,111 @@ void Game::renderIntro() {
     }
 
     drawVignette(sf::Color::Black);
+}
+
+// ── Popup de objetivo estilo RPG ──────────────────────────────────────────────
+void Game::showObjPopup(const sf::String& header, const sf::String& name,
+                         const sf::String& status, sf::Color accent,
+                         const sf::Texture* tex, sf::IntRect rect) {
+    m_objPopup = { header, name, status, accent, tex, rect, 0.f, 650.f };
+    m_objPopupActive = true;
+}
+
+void Game::updateObjPopup(float dt) {
+    if (!m_objPopupActive) return;
+    // Congela enquanto o leitor de página estiver aberto; reinicia ao fechar
+    if (pageReader.isOpen()) {
+        m_objPopup.timer  = 0.f;
+        m_objPopup.slideY = 650.f;
+        return;
+    }
+    m_objPopup.timer += dt;
+    const float SLIDE = 0.40f;
+    if (m_objPopup.timer < SLIDE) {
+        float t    = m_objPopup.timer / SLIDE;
+        float ease = 1.f - (1.f - t) * (1.f - t);
+        m_objPopup.slideY = 650.f + (510.f - 650.f) * ease;
+    } else {
+        m_objPopup.slideY = 510.f;
+    }
+    if (m_objPopup.timer >= 4.0f) m_objPopupActive = false;
+}
+
+void Game::drawObjPopup() {
+    if (!m_objPopupActive) return;
+
+    float alpha = (m_objPopup.timer > 3.5f)
+                  ? 1.f - (m_objPopup.timer - 3.5f) / 0.5f
+                  : 1.f;
+    alpha = std::max(0.f, std::min(1.f, alpha));
+    sf::Uint8 a = static_cast<sf::Uint8>(255.f * alpha);
+
+    const float CW = 320.f, CH = 72.f;
+    const float CX = 400.f - CW * 0.5f;
+    const float CY = m_objPopup.slideY;
+    const float AB =  5.f;   // accent bar width
+    const float IS = 32.f;   // icon size
+    const float PD = 10.f;   // padding
+
+    sf::View prev = window.getView();
+    window.setView(window.getDefaultView());
+
+    sf::RectangleShape shadow({CW, CH});
+    shadow.setPosition(CX + 3.f, CY + 3.f);
+    shadow.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(130 * alpha)));
+    window.draw(shadow);
+
+    sf::RectangleShape bg({CW, CH});
+    bg.setPosition(CX, CY);
+    bg.setFillColor(sf::Color(10, 12, 18, static_cast<sf::Uint8>(225 * alpha)));
+    window.draw(bg);
+
+    sf::Color ac = m_objPopup.accent; ac.a = a;
+    sf::RectangleShape bar({AB, CH});
+    bar.setPosition(CX, CY);
+    bar.setFillColor(ac);
+    window.draw(bar);
+
+    if (m_objPopup.iconTex) {
+        sf::Sprite icon(*m_objPopup.iconTex);
+        icon.setTextureRect(m_objPopup.iconRect);
+        float sc = IS / static_cast<float>(std::max(m_objPopup.iconRect.width,
+                                                     m_objPopup.iconRect.height));
+        icon.setScale(sc, sc);
+        icon.setPosition(CX + AB + PD, CY + (CH - IS) * 0.5f);
+        icon.setColor(sf::Color(255, 255, 255, a));
+        window.draw(icon);
+    }
+
+    float tx = CX + AB + PD + IS + PD;
+
+    sf::Text hdr;
+    hdr.setFont(m_cinzel);
+    hdr.setCharacterSize(11);
+    hdr.setLetterSpacing(1.5f);
+    hdr.setString(m_objPopup.header);
+    sf::Color hc = m_objPopup.accent; hc.a = a;
+    hdr.setFillColor(hc);
+    hdr.setPosition(tx, CY + 9.f);
+    window.draw(hdr);
+
+    sf::Text nm;
+    nm.setFont(font);
+    nm.setCharacterSize(13);
+    nm.setString(m_objPopup.name);
+    nm.setFillColor(sf::Color(215, 215, 225, a));
+    nm.setPosition(tx, CY + 27.f);
+    window.draw(nm);
+
+    sf::Text st;
+    st.setFont(font);
+    st.setCharacterSize(11);
+    st.setString(m_objPopup.status);
+    st.setFillColor(sf::Color(125, 130, 148, a));
+    st.setPosition(tx, CY + 48.f);
+    window.draw(st);
+
+    window.setView(prev);
 }
 
 void Game::renderPlaying() {
@@ -1856,6 +2369,7 @@ void Game::renderPlaying() {
 
     dialogueBox.draw(window);
     eventQueue.draw(window);
+    drawObjPopup();
     hud.draw(window);
 
     pageReader.draw(window);
@@ -1976,7 +2490,7 @@ void Game::renderPaused() {
         warnSub.setFont(font);
         warnSub.setCharacterSize(15);
         warnSub.setFillColor(sf::Color(200, 180, 180));
-        { std::string s = "Todo o progresso atual sera perdido.";
+        { std::string s = "Todo o progresso atual ser\xc3\xa1 perdido.";
           warnSub.setString(sf::String::fromUtf8(s.begin(), s.end())); }
         warnSub.setPosition(400.f - warnSub.getGlobalBounds().width / 2.f, 280.f);
         window.draw(warnSub);
