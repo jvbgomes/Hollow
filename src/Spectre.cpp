@@ -4,8 +4,7 @@
 
 static constexpr float PI = 3.14159265f;
 
-Spectre::Spectre(float x, float y) : Enemy(x, y, 75.f, 2, VIEW_RADIUS),
-    m_stuckPos({x, y}) {
+Spectre::Spectre(float x, float y) : Enemy(x, y, 75.f, 2, VIEW_RADIUS) {
     loadTextures("assets/maps/sprites/enemies/spectre/", "spectre");
     float scale = 32.f / 52.f;
     sprite.setScale(scale, scale);
@@ -55,18 +54,6 @@ void Spectre::rebuildFOVCone() {
     }
 }
 
-sf::Vector2f Spectre::probeDir(sf::Vector2f dir, float angle, float dt, const Map& map) {
-    float c = std::cos(angle), s = std::sin(angle);
-    sf::Vector2f d = {dir.x * c - dir.y * s, dir.x * s + dir.y * c};
-
-    // Testa colisão um passo à frente
-    sf::Vector2f testPos = position + d * speed * dt * 4.f;
-    sprite.setPosition(testPos);
-    bool blocked = map.isCollidingWith(sprite.getGlobalBounds());
-    sprite.setPosition(position);
-
-    return blocked ? sf::Vector2f{0.f, 0.f} : d;
-}
 
 void Spectre::setWaypoints(const std::vector<sf::Vector2f>& wp) {
     m_waypoints = wp;
@@ -75,60 +62,32 @@ void Spectre::setWaypoints(const std::vector<sf::Vector2f>& wp) {
 }
 
 void Spectre::update(float dt, const Map& map, sf::Vector2f playerPos) {
-    bool sees = canSeePlayer(playerPos);
+    float dx0 = playerPos.x - position.x;
+    float dy0 = playerPos.y - position.y;
+    float dist0 = std::sqrt(dx0*dx0 + dy0*dy0);
+
+    // Detecta player via FOV ou por proximidade imediata (raio 80px — sem linha de visão necessária)
+    bool sees = canSeePlayer(playerPos) || dist0 < 80.f;
 
     if (sees) {
         m_chasing    = true;
         m_chaseTimer = CHASE_MEMORY;
-        float dx = playerPos.x - position.x;
-        float dy = playerPos.y - position.y;
-        float dist = std::sqrt(dx*dx + dy*dy);
-        if (dist > 0.f) m_facingDir = {dx/dist, dy/dist};
+        if (dist0 > 0.f) m_facingDir = {dx0/dist0, dy0/dist0};
     } else if (m_chasing) {
         m_chaseTimer -= dt;
         if (m_chaseTimer <= 0.f) m_chasing = false;
     }
 
     if (m_chasing) {
-        // --- Modo perseguição (com desvio de colisão) ---
-        float dx = playerPos.x - position.x;
-        float dy = playerPos.y - position.y;
-        float dist = std::sqrt(dx*dx + dy*dy);
-        if (dist > 0.f) {
-            sf::Vector2f desired = {dx/dist, dy/dist};
-            float movedSq = (position.x-m_stuckPos.x)*(position.x-m_stuckPos.x)
-                          + (position.y-m_stuckPos.y)*(position.y-m_stuckPos.y);
-            m_stuckTimer += dt;
-            if (m_stuckTimer >= 0.8f) {
-                if (movedSq < 4.f && m_escapeTimer <= 0.f) {
-                    m_escapeAngle = (std::rand()%2) ? PI/2.f : -PI/2.f;
-                    m_escapeTimer = 0.6f;
-                }
-                m_stuckTimer = 0.f; m_stuckPos = position;
-            }
-            if (m_escapeTimer > 0.f) m_escapeTimer -= dt;
-            float base = (m_escapeTimer > 0.f) ? m_escapeAngle : 0.f;
-            static const float PROBES[] = {0.f,PI/6.f,-PI/6.f,PI/3.f,-PI/3.f,PI/2.f,-PI/2.f};
-            sf::Vector2f chosen = {};
-            for (float offset : PROBES) {
-                sf::Vector2f c = probeDir(desired, base+offset, dt, map);
-                if (c.x!=0.f || c.y!=0.f) { chosen=c; break; }
-            }
-            if (chosen.x==0.f && chosen.y==0.f) chosen = desired;
-            applyDirection(chosen);
-            m_facingDir = chosen;
-            position.x += chosen.x * speed * dt;
+        // --- Modo perseguição: linha reta, ignora móveis (fantasma passa por tudo) ---
+        if (dist0 > 0.f) {
+            sf::Vector2f dir = {dx0/dist0, dy0/dist0};
+            applyDirection(dir);
+            m_facingDir = dir;
+            // Move sem checagem de colisão — Spectre é fantasma e atravessa mobília
+            position.x += dir.x * speed * dt;
+            position.y += dir.y * speed * dt;
             sprite.setPosition(position);
-            if (map.isCollidingWith(sprite.getGlobalBounds())) {
-                position.x -= chosen.x * speed * dt;
-                sprite.setPosition(position);
-            }
-            position.y += chosen.y * speed * dt;
-            sprite.setPosition(position);
-            if (map.isCollidingWith(sprite.getGlobalBounds())) {
-                position.y -= chosen.y * speed * dt;
-                sprite.setPosition(position);
-            }
         }
     } else if (!m_waypoints.empty()) {
         // --- Modo patrulha: ignora colisão (fantasma atravessa móveis) ---
