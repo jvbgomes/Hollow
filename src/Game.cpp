@@ -269,7 +269,7 @@ void Game::setupLevel() {
 
 void Game::setupHallPrincipal() {
     // Transição topo → vestíbulo (player sobe pela escadaria)
-    transitions.push_back({ {176.f, 48.f, 64.f, 32.f}, "vestibulo", {176.f, 208.f}, true });
+    transitions.push_back({ {176.f, 48.f, 64.f, 32.f}, "vestibulo", {192.f, 272.f}, true });
 
     // Passagem esquerda (cols 0, rows 4-5) → quarto da criança
     transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
