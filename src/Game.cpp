@@ -110,7 +110,9 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
     else if (room == "quarto_crianca")  setupQuartoCrianca();
     else if (room == "biblioteca")      setupBiblioteca();
     else if (room == "porao")           setupPorao();
+    else if (room == "porao_fundo")     setupPoraoFundo();
     else if (room == "deposito")        setupDeposito();
+    else if (room == "corredor_saida")  setupCorredorSaida();
     else if (room == "sala_estar")      setupSalaEstar();
     else if (room == "area_externa")    setupAreaExterna();
     else if (room == "cozinha")         setupCozinha();
@@ -404,10 +406,10 @@ void Game::setupCozinha() {
 }
 
 void Game::setupPorao() {
-    // Volta ao hall principal
-    transitions.push_back({ {176.f, 16.f, 64.f, 32.f}, "hall_principal", {16.f, 220.f}, true });
-    // Corredor para o depósito (ajustar coords conforme mapa)
-    transitions.push_back({ {320.f, 200.f, 32.f, 48.f}, "deposito", {48.f, 120.f}, true });
+    // Topo → hall principal (cols 11-14, row 0 = x 176-224, y 0)
+    transitions.push_back({ {176.f, 0.f, 64.f, 32.f}, "hall_principal", {16.f, 220.f}, true });
+    // Direita → porão fundo (col 25, rows 6-11 = x 400, y 96-176)
+    transitions.push_back({ {400.f, 96.f, 16.f, 80.f}, "porao_fundo", {40.f, 120.f}, true });
 
     // Thomas — posição placeholder (ajustar conforme mapa do porão)
     npcTexThomas.loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
@@ -456,9 +458,28 @@ void Game::setupPorao() {
             "Apenas saia.");
     }
 
+    m_lights.push_back({ {208.f,  32.f}, 50.f, 8.f, 2.3f, 0.0f });
+    m_lights.push_back({ { 80.f, 160.f}, 45.f, 7.f, 2.6f, 1.5f });
+    m_lights.push_back({ {320.f, 160.f}, 45.f, 7.f, 2.4f, 2.8f });
+}
+
+void Game::setupPoraoFundo() {
+    // Esquerda → porão (col 0, rows 5-9 = x 0, y 80-144)
+    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true });
+    // Direita → depósito (col 23, rows 5-9 = x 368, y 80-144)
+    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {24.f, 96.f}, true });
+
+    if (pageItemTex.getSize().x == 0)
+        pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
+    sf::IntRect pr(0, 0, 32, 32);
+    auto savedIt = m_presentItems.find("porao_fundo");
+    auto itemOk  = [&](sf::Vector2f pos) -> bool {
+        if (savedIt == m_presentItems.end()) return true;
+        return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
     // Página 5 — A Última Mensagem (aciona o Boss ao ser coletada)
-    if (itemOk({200.f, 160.f})) {
-        items.addItem(ItemType::Page, {200.f, 160.f}, pageItemTex, pr, 999.f,
+    if (itemOk({192.f, 128.f})) {
+        items.addItem(ItemType::Page, {192.f, 128.f}, pageItemTex, pr, 999.f,
             "A \xc3\x9a" "ltima Mensagem \xe2\x80\x94 M.V.",
             "Encontrei as p\xc3\xa1ginas. Falei com todos.\n"
             "Tinha tudo que precisava.\n\n"
@@ -477,16 +498,16 @@ void Game::setupPorao() {
             "\xe2\x80\x94 M.V., novembro de 1987");
     }
 
-    m_lights.push_back({ { 80.f,  48.f}, 45.f, 9.f, 2.3f, 0.0f });
-    m_lights.push_back({ {280.f,  48.f}, 45.f, 8.f, 2.1f, 1.5f });
-    m_lights.push_back({ {160.f, 200.f}, 50.f, 7.f, 2.5f, 2.8f });
+    m_lights.push_back({ {192.f,  48.f}, 40.f, 6.f, 2.5f, 0.0f });
+    m_lights.push_back({ { 80.f, 160.f}, 38.f, 5.f, 2.8f, 1.2f });
+    m_lights.push_back({ {300.f, 160.f}, 38.f, 5.f, 2.2f, 2.5f });
 }
 
 void Game::setupDeposito() {
-    // Volta ao porão
-    transitions.push_back({ {16.f, 120.f, 32.f, 48.f}, "porao", {300.f, 200.f}, true });
-    // Saída da mansão (só funciona com a chave)
-    doors.push_back({ {280.f, 120.f, 32.f, 48.f}, Door::Kind::Exit });
+    // Esquerda → porão fundo (col 0, rows 4-8 = x 0, y 64-128)
+    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true });
+    // Direita → corredor de saída (col 19, rows 4-8 = x 304, y 64-128)
+    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {32.f, 64.f}, true });
 
     // Chave (placeholder pos, ajustar conforme mapa)
     if (keyItemTex.getSize().x == 0)
@@ -502,6 +523,18 @@ void Game::setupDeposito() {
 
     m_lights.push_back({ {160.f, 80.f},  55.f, 10.f, 2.4f, 0.0f });
     m_lights.push_back({ {160.f, 160.f}, 40.f,  8.f, 2.7f, 1.9f });
+}
+
+void Game::setupCorredorSaida() {
+    // Esquerda → depósito (col 0, rows 3-6 = x 0, y 48-96)
+    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true });
+    // Porta de saída no final do corredor (cols 26-27, rows 2-7 = x 416, y 32-112)
+    doors.push_back({ {416.f, 32.f, 32.f, 96.f}, Door::Kind::Exit });
+
+    // Iluminação esparsa — corredor deve parecer opressivo
+    m_lights.push_back({ { 80.f, 80.f}, 40.f, 6.f, 2.8f, 0.0f });
+    m_lights.push_back({ {224.f, 80.f}, 38.f, 5.f, 3.0f, 1.8f });
+    m_lights.push_back({ {368.f, 80.f}, 35.f, 4.f, 2.5f, 3.2f });
 }
 
 void Game::resetGame() {
