@@ -95,7 +95,7 @@ bool Map::parseTMX(const std::string& path) {
 
     static const std::vector<std::string> VISUAL_ORDER = {
         "Floor", "Floor2", "UnderWall", "Under Something", "Walls", "Painting", "Stairs",
-        "Furniture", "Furniture2", "Banister", "Props", "Props2", "Props3"
+        "Furniture 0", "Furniture", "Furniture2", "Banister", "Props", "Props2", "Props3", "Props4", "Props5"
     };
     std::map<std::string, Grid> layerMap;
 
