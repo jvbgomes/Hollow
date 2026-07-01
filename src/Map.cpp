@@ -94,7 +94,7 @@ bool Map::parseTMX(const std::string& path) {
               [](const Tileset& a, const Tileset& b){ return a.firstgid > b.firstgid; });
 
     static const std::vector<std::string> VISUAL_ORDER = {
-        "Floor", "Floor2", "UnderWall", "Under Something", "Walls", "Painting", "Stairs",
+        "Floor", "Floor2", "UnderWall", "Under Something", "Walls", "UpperWall", "Painting", "Stairs",
         "Furniture 0", "Furniture", "Furniture2", "Banister", "Props", "Props2", "Props3", "Props4", "Props5"
     };
     std::map<std::string, Grid> layerMap;
