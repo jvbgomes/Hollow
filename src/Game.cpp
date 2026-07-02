@@ -574,7 +574,7 @@ void Game::setupDeposito() {
 
 void Game::setupCorredorSaida() {
     // Baixo → depósito (row 9, cols 2-4)
-    transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {48.f, 64.f}, true, {48.f, 144.f} });
+    transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {48.f, 80.f}, true, {48.f, 144.f} });
     // Porta de saída no final do corredor — col 27, rows 5-7
     doors.push_back({ {432.f, 80.f, 16.f, 48.f}, Door::Kind::Exit });
 
