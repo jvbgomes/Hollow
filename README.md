@@ -237,5 +237,5 @@ As seguintes funcionalidades vão além do requisito mínimo da disciplina:
 |---|---|---|
 | Tileset "Mansion of Shadow" (16×16) | itch.io | Comercial |
 | Sprites de personagem (Player/NPCs) | "Top-Down Character Sprites" — itch.io | CC0 |
-| Sprites de inimigos (Shadow, Spectre, Boss) | Criados pelo autor | — |
+| Sprites de inimigos (Shadow, Spectre, Boss) | Criados pelo autor | CC0 |
 | Áudio (trilha e SFX) | freesound.org / packs itch.io | Gratuito |
