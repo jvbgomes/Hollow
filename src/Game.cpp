@@ -181,9 +181,9 @@ void Game::setupHallPrincipal() {
     // Passagem direita (col 25, rows 4-5) → biblioteca
     transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
     // Entrada inferior esquerda → porão (Thomas)
-    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {192.f, 48.f}, true });
+    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {170.f, 100.f}, true }); //192 e 48
     // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {200.f, 48.f}, true });
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {225.f, 80.f}, true });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -196,7 +196,7 @@ void Game::setupHallPrincipal() {
 
 void Game::setupQuartoCrianca() {
     // Saída direita → hall principal (col 17, rows 6-9 = y=96-160)
-    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true, {264.f, 120.f} });
+    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true, {264.f, 120.f} }); 
 
     // Luzes: (col,row) → pixel centro = col*16, row*16
     m_lights.push_back({ {256.f,  64.f}, 50.f, 8.f, 2.1f, 0.0f });  // (16,4)
@@ -323,11 +323,11 @@ void Game::setupBiblioteca() {
 
 void Game::setupSalaEstar() {
     // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
-    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {312.f, 240.f}, true });
+    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {312.f, 300.f}, true });
     // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
-    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {160.f, 48.f}, true });
+    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {20.f, 225.f}, true });
     // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
-    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {40.f, 120.f}, true });
+    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {20.f, 200.f}, true });
 
     m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
     m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
@@ -1392,6 +1392,19 @@ void Game::renderMenu() {
 }
 
 void Game::updateIntro(float dt) {
+
+    //pula toda a intro com ESC
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && !keyEscPressed) {
+        m_introPhase     = 7; 
+        m_introOverlay   = 0.f;
+        m_introFadingOut = false;
+        characterOption  = 0;
+        keyEscPressed    = true;
+        return;
+    }
+    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) keyEscPressed = false;
+
+
     constexpr float FADE = 0.55f;
 
     flickerTimer += dt;
@@ -2048,14 +2061,23 @@ void Game::renderIntro() {
         window.draw(subTxt);
 
         float hpulse = 0.4f + 0.6f * std::sin(flickerTimer * 2.1f);
-        sf::Text hint;
-        hint.setFont(font);
-        hint.setCharacterSize(14);
-        hint.setFillColor(sf::Color(174, 177, 186, static_cast<sf::Uint8>(60 + 140 * hpulse)));
-        std::string hs = "continuar \xe2\x96\xb8";
-        hint.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
-        hint.setPosition(W - hint.getGlobalBounds().width - 22.f, H - 52.f);
-        window.draw(hint);
+        sf::Text hintEnter, hintEsc;
+
+        hintEnter.setFont(font);
+        hintEnter.setCharacterSize(14);
+        hintEnter.setFillColor(sf::Color(174, 177, 186, static_cast<sf::Uint8>(60 + 140 * hpulse)));
+        std::string he = "ENTER continuar \xe2\x96\xb8";
+        hintEnter.setString(sf::String::fromUtf8(he.begin(), he.end()));
+        hintEnter.setPosition(W - hintEnter.getGlobalBounds().width - 22.f, H - 58.f);
+        window.draw(hintEnter);
+
+        hintEsc.setFont(font);
+        hintEsc.setCharacterSize(12);
+        hintEsc.setFillColor(sf::Color(174, 177, 186, static_cast<sf::Uint8>(60 + 140 * hpulse)));
+        std::string hs = "ESC pular introdu\xc3\xa7\xc3\xa3o";
+        hintEsc.setString(sf::String::fromUtf8(hs.begin(), hs.end()));
+        hintEsc.setPosition(W - hintEsc.getGlobalBounds().width - 22.f, H - 38.f);
+        window.draw(hintEsc);
     }
 
     // --- Phase 7: character select ---
