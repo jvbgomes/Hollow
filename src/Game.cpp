@@ -181,9 +181,9 @@ void Game::setupHallPrincipal() {
     // Passagem direita (col 25, rows 4-5) → biblioteca
     transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
     // Entrada inferior esquerda → porão (Thomas)
-    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {170.f, 100.f}, true }); //192 e 48
+    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {170.f, 100.f}, true, {0.f, 240.f} }); //192 e 48
     // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {225.f, 80.f}, true });
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {225.f, 80.f}, true, {400.f, 240.f} });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -323,7 +323,7 @@ void Game::setupBiblioteca() {
 
 void Game::setupSalaEstar() {
     // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
-    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {312.f, 300.f}, true });
+    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true });
     // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
     transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {20.f, 225.f}, true });
     // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
@@ -407,7 +407,7 @@ void Game::setupCozinha() {
 
 void Game::setupPorao() {
     // Topo → hall principal (cols 11-14, row 0 = x 176-224, y 0)
-    transitions.push_back({ {176.f, 0.f, 64.f, 32.f}, "hall_principal", {16.f, 220.f}, true });
+    transitions.push_back({ {176.f, 0.f, 64.f, 32.f}, "hall_principal", {0.f, 240.f}, true });
     // Direita → porão fundo (col 25, rows 6-11 = x 400, y 96-176)
     transitions.push_back({ {400.f, 96.f, 16.f, 80.f}, "porao_fundo", {40.f, 120.f}, true });
 
