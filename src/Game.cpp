@@ -488,8 +488,8 @@ void Game::setupPorao() {
     thomas->setColor(sf::Color(180, 180, 180, 200));
     thomas->addOption("Onde est\xc3\xa1 a chave para sair?", {
         {"Voc\xc3\xaa",   "Thomas, preciso sair. Onde est\xc3\xa1 a chave?",                            true},
-        {"Thomas", "No dep\xc3\xb3" "sito. Al\xc3\xa9m do corredor.",                                   false},
-        {"Thomas", "Atr\xc3\xa1s do espelho quebrado. Mas v\xc3\xa1 preparado.",                        false},
+        {"Thomas", "No dep\xc3\xb3" "sito. Al\xc3\xa9m do corredor do por\xc3\xa3o fundo.",             false},
+        {"Thomas", "Deixei escondida l\xc3\xa1 dentro. Mas v\xc3\xa1 preparado.",                       false},
         {"Thomas", "Ela acorda quando voc\xc3\xaa est\xc3\xa1 prestes a sair. N\xc3\xa3o olhe para tr\xc3\xa1s.", false},
     });
     thomas->addOption("Tem algum lugar seguro?", {
@@ -513,12 +513,12 @@ void Game::setupPorao() {
             "Anota\xc3\xa7\xc3\xb5" "es de Thomas \xe2\x80\x94 Sem Data",
             "Observei por semanas.\n\n"
             "As sombras evitam o por\xc3\xa3o.\n"
-            "H\xc3\xa1 algo no espelho antigo que as\n"
-            "rep\xc3\xaa" "le \xe2\x80\x94 talvez o reflexo as confunda,\n"
-            "talvez seja outra coisa. N\xc3\xa3o importa.\n"
+            "N\xc3\xa3o sei explicar. Talvez o escuro\n"
+            "daqui seja diferente do escuro delas.\n"
+            "Talvez seja outra coisa. N\xc3\xa3o importa.\n"
             "O fato \xc3\xa9: elas n\xc3\xa3o entram.\n\n"
             "Escondi a chave da sa\xc3\xad" "da principal\n"
-            "atr\xc3\xa1s do espelho. \xc3\x89 o \xc3\xba" "nico lugar\n"
+            "no dep\xc3\xb3" "sito. \xc3\x89 o \xc3\xba" "nico lugar\n"
             "que posso garantir que estar\xc3\xa1 l\xc3\xa1.\n\n"
             "Se voc\xc3\xaa est\xc3\xa1 lendo isso, chegou at\xc3\xa9\n"
             "aqui. Isso j\xc3\xa1 diz algo sobre voc\xc3\xaa.\n\n"
