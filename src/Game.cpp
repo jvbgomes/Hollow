@@ -497,7 +497,7 @@ void Game::setupPorao() {
 
 void Game::setupPoraoFundo() {
     // Baixo → porão (row 15, cols 2-4), balloon em (3,15)
-    transitions.push_back({ {32.f, 224.f, 48.f, 32.f}, "porao", {384.f, 120.f}, true, {48.f, 240.f} });
+    transitions.push_back({ {32.f, 224.f, 48.f, 32.f}, "porao", {32.f, 48.f}, true, {48.f, 240.f} });
     // Topo → depósito (cols 18-20, rows 1-2), balloon em (19,2)
     transitions.push_back({ {288.f, 16.f, 48.f, 32.f}, "deposito", {272.f, 192.f}, true, {304.f, 32.f} });
 
