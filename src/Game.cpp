@@ -435,7 +435,7 @@ void Game::setupPorao() {
     // Topo → hall principal (cols 11-14, row 0 = x 176-224, y 0)
     transitions.push_back({ {176.f, 0.f, 64.f, 32.f}, "hall_principal", {0.f, 240.f}, true });
     // Trigger para porão fundo em tile (2,2)
-    transitions.push_back({ {32.f, 32.f, 32.f, 32.f}, "porao_fundo", {40.f, 120.f}, true });
+    transitions.push_back({ {32.f, 32.f, 32.f, 32.f}, "porao_fundo", {48.f, 240.f}, true });
 
     // Thomas — posição placeholder (ajustar conforme mapa do porão)
     npcTexThomas.loadFromFile("assets/maps/sprites/npcs/thomas/thomas.png");
@@ -497,9 +497,9 @@ void Game::setupPorao() {
 
 void Game::setupPoraoFundo() {
     // Esquerda → porão (col 0, rows 5-9 = x 0, y 80-144)
-    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true });
+    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true, {48.f, 240.f} });
     // Direita → depósito (col 23, rows 5-9 = x 368, y 80-144)
-    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {24.f, 96.f}, true });
+    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {24.f, 96.f}, true, {304.f, 32.f} });
 
     if (pageItemTex.getSize().x == 0)
         pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
@@ -533,6 +533,14 @@ void Game::setupPoraoFundo() {
     m_lights.push_back({ {192.f,  48.f}, 40.f, 6.f, 2.5f, 0.0f });
     m_lights.push_back({ { 80.f, 160.f}, 38.f, 5.f, 2.8f, 1.2f });
     m_lights.push_back({ {300.f, 160.f}, 38.f, 5.f, 2.2f, 2.5f });
+    m_lights.push_back({ { 80.f, 224.f}, 45.f, 7.f, 2.3f, 0.5f });
+    m_lights.push_back({ { 96.f, 224.f}, 45.f, 7.f, 2.1f, 1.4f });
+    m_lights.push_back({ {176.f,  64.f}, 45.f, 7.f, 2.4f, 2.0f });
+    m_lights.push_back({ {192.f,  64.f}, 45.f, 7.f, 2.2f, 0.8f });
+    m_lights.push_back({ {272.f,  32.f}, 45.f, 7.f, 2.0f, 1.6f });
+    m_lights.push_back({ {288.f,  32.f}, 45.f, 7.f, 2.5f, 2.9f });
+    m_lights.push_back({ {336.f,  32.f}, 45.f, 7.f, 2.3f, 0.3f });
+    m_lights.push_back({ {352.f,  32.f}, 45.f, 7.f, 2.1f, 1.9f });
 }
 
 void Game::setupDeposito() {
