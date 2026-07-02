@@ -142,9 +142,6 @@ As filas de diálogo de cada `NPC` também são gerenciadas manualmente, indexad
 | Eleanor | Biblioteca | Dá dicas sobre a localização das páginas |
 | Thomas | Porão | Sabe onde está a chave — revela com a pergunta certa |
 | A Criança | Quarto | Fala em enigmas sobre A Entidade |
-
-A aparência espectral dos NPCs é obtida via `sf::Sprite::setColor(sf::Color(180,180,180,200))` — dessaturação e transparência por multiplicação de cor, sem editar os assets originais.
-
 ---
 
 ## Inimigos
