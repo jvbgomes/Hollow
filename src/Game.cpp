@@ -231,7 +231,7 @@ void Game::setupQuartoCrianca() {
 
 void Game::setupBiblioteca() {
     // Saída esquerda → hall principal
-    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
+    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true, {0.f, 224.f} });
 
     // Eleanor — próxima ao spawn do player (spawn={40,200}), lado direito da entrada
     npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
