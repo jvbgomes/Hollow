@@ -149,8 +149,7 @@ void DialogueBox::moveCursor(int delta) {
 
 int DialogueBox::confirmOption() {
     int chosen = (m_cursor < (int)m_menuOpts.size()) ? m_menuOpts[m_cursor].index : -1;
-    if (chosen == -1) m_phase = Phase::None;   // "Sair" fecha
-    // Para outros índices, o caller chama startResponse e muda a fase
+    if (chosen == -1) close();  // "Sair" fecha e limpa estado salvo
     return chosen;
 }
 
@@ -229,4 +228,9 @@ void DialogueBox::draw(sf::RenderWindow& window) {
 bool DialogueBox::isActive()         const { return m_phase != Phase::None; }
 bool DialogueBox::isShowingOptions() const { return m_phase == Phase::Options; }
 bool DialogueBox::isTextFinished()   const { return m_lineFinished; }
-void DialogueBox::close()                  { m_phase = Phase::None; }
+void DialogueBox::close() {
+    m_phase = Phase::None;
+    m_savedOpts.clear();
+    m_savedNpcName.clear();
+    m_savedNpcTex = nullptr;
+}
