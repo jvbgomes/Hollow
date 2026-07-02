@@ -332,6 +332,16 @@ void Game::setupSalaEstar() {
     m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
     m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
     m_lights.push_back({ {112.f, 192.f}, 50.f, 7.f, 2.6f, 2.5f });
+    m_lights.push_back({ { 16.f,  96.f}, 55.f, 8.f, 2.2f, 0.4f });
+    m_lights.push_back({ {176.f,  32.f}, 55.f, 8.f, 2.0f, 1.1f });
+    m_lights.push_back({ {192.f,  32.f}, 55.f, 8.f, 2.3f, 2.0f });
+    m_lights.push_back({ {384.f, 160.f}, 55.f, 8.f, 2.1f, 0.7f });
+    m_lights.push_back({ {176.f, 160.f}, 55.f, 8.f, 2.4f, 1.8f });
+    m_lights.push_back({ {192.f, 160.f}, 55.f, 8.f, 2.2f, 3.0f });
+    m_lights.push_back({ {368.f,  32.f}, 55.f, 8.f, 2.0f, 0.9f });
+    m_lights.push_back({ {384.f,  32.f}, 55.f, 8.f, 2.5f, 2.3f });
+    m_lights.push_back({ { 32.f, 208.f}, 55.f, 8.f, 2.3f, 1.5f });
+    m_lights.push_back({ { 16.f, 208.f}, 55.f, 8.f, 2.1f, 2.8f });
 }
 
 void Game::setupAreaExterna() {
