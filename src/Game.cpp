@@ -325,7 +325,7 @@ void Game::setupSalaEstar() {
     // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
     transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true, {16.f, 112.f} });
     // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
-    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {20.f, 225.f}, true, {208.f, 32.f} });
+    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {0.f, 224.f}, true, {208.f, 32.f} });
     // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
     transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {20.f, 200.f}, true, {400.f, 192.f} });
 
@@ -370,6 +370,15 @@ void Game::setupAreaExterna() {
     m_lights.push_back({ {160.f, 300.f}, 80.f, 4.f, 2.0f, 1.5f });
     m_lights.push_back({ {480.f, 300.f}, 80.f, 4.f, 2.2f, 3.0f });
     m_lights.push_back({ {320.f, 420.f}, 75.f, 3.f, 1.9f, 2.0f });
+    // Fontes pontuais definidas pelo mapa
+    m_lights.push_back({ {288.f, 128.f}, 60.f, 6.f, 2.1f, 0.3f });
+    m_lights.push_back({ {304.f, 128.f}, 60.f, 6.f, 2.3f, 1.0f });
+    m_lights.push_back({ {576.f, 128.f}, 60.f, 6.f, 2.0f, 2.2f });
+    m_lights.push_back({ {592.f, 128.f}, 60.f, 6.f, 2.4f, 3.1f });
+    m_lights.push_back({ { 96.f, 448.f}, 60.f, 5.f, 2.2f, 0.8f });
+    m_lights.push_back({ { 80.f, 448.f}, 60.f, 5.f, 2.0f, 1.9f });
+    m_lights.push_back({ { 16.f, 176.f}, 55.f, 7.f, 2.5f, 0.5f });
+    m_lights.push_back({ { 16.f, 272.f}, 55.f, 7.f, 2.3f, 2.7f });
 }
 
 void Game::setupCozinha() {
