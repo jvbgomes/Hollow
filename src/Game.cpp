@@ -1062,14 +1062,13 @@ void Game::checkItemCollection() {
             case ItemType::Key: {
                 player.collectKey();
                 audio.playSfx(SfxId::ItemCollect);
-                std::string kn = "Chave da Mans\xc3\xa3o Voss";
-                std::string ks = "Encontre a sa\xc3\xad" "da \xe2\x86\x92";
+                static const std::string kKeyHdr = "CHAVE ENCONTRADA";
+                static const std::string kKeyName = "Chave da Mans\xc3\xa3o Voss";
+                static const std::string kKeySub  = "Encontre a sa\xc3\xad" "da \xe2\x86\x92";
                 showObjPopup(
-                    sf::String::fromUtf8(
-                        std::string("CHAVE ENCONTRADA").begin(),
-                        std::string("CHAVE ENCONTRADA").end()),
-                    sf::String::fromUtf8(kn.begin(), kn.end()),
-                    sf::String::fromUtf8(ks.begin(), ks.end()),
+                    sf::String::fromUtf8(kKeyHdr.begin(),  kKeyHdr.end()),
+                    sf::String::fromUtf8(kKeyName.begin(), kKeyName.end()),
+                    sf::String::fromUtf8(kKeySub.begin(),  kKeySub.end()),
                     sf::Color(80, 215, 120),
                     &keyItemTex,
                     sf::IntRect(0, 16, 16, 16));
