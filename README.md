@@ -52,7 +52,7 @@ cd build && make
 
 ## Mapa da Mansão
 
-Cada cômodo é um arquivo `.tmx` separado, criado no **Tiled Map Editor** e exportado como CSV. As conexões entre cômodos são feitas por zonas de transição no chão (ativadas com E).
+Cada cômodo é um arquivo `.tmx` separado, criado no **Tiled Map Editor**. O `Map::load()` lê o `.tmx` diretamente — o dado de tiles em CSV está embutido no próprio arquivo, sem necessidade de CSVs externos. As conexões entre cômodos são feitas por zonas de transição no chão (ativadas com E).
 
 ```
                     ┌───────────────┐
@@ -127,7 +127,7 @@ As filas de diálogo de cada `NPC` também são gerenciadas manualmente, indexad
 | Classe | Responsabilidade |
 |---|---|
 | `Game` | Loop principal e máquina de estados: `Intro → Menu → Playing → Paused → Victory / GameOver` |
-| `Map` | Leitura de CSV exportado do Tiled, renderização de tiles 16×16, colisão tile-based via layer `Collision` |
+| `Map` | Leitura de `.tmx` (Tiled), renderização de tiles 16×16, colisão tile-based via layer `Collision` |
 | `Projectile` | Lamparina de sal arremessada com Q — sem efeito no Boss |
 | `DialogueBox` | Caixa estilo RPG com portrait, nome do falante, typewriter e opções de escolha |
 | `PageReader` | Tela de leitura do conteúdo completo das páginas do diário (lore) |
