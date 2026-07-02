@@ -115,7 +115,7 @@ Entity  (abstrata — update(), draw())
 
 | Classe | Tipo | Descrição |
 |---|---|---|
-| `ItemList` | Lista encadeada manual | Armazena itens coletáveis (páginas, lamparinas, chave, poções). Cada nó possui timer de expiração. |
+| `ItemList` | Lista encadeada manual | Armazena itens coletáveis (páginas, lamparinas, chave, poções). |
 | `EventQueue` | Fila manual | Gerencia mensagens do HUD com tempo de exibição fixo. |
 
 As filas de diálogo de cada `NPC` também são gerenciadas manualmente, indexadas por opção de resposta.
@@ -193,7 +193,6 @@ As seguintes funcionalidades vão além do requisito mínimo da disciplina:
 | # | Funcionalidade |
 |---|---|
 | ★ | Sistema de stamina com regeneração |
-| ★ | Timer de expiração de itens em cada nó da `ItemList` |
 | ★ | `AudioManager` com trilhas por contexto e SFX pontuais |
 
 ---
@@ -210,7 +209,6 @@ As seguintes funcionalidades vão além do requisito mínimo da disciplina:
 - Persistência de inimigos por cômodo (`m_clearedRooms`)
 - Construção dos mapas no Tiled, ajustes de colisão e testes de gameplay
 - Sistema de stamina ★
-- Timer de expiração de itens ★
 
 ### Radla
 - `Item`, `ItemList` (lista encadeada manual)
