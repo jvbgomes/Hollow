@@ -113,8 +113,6 @@ Entity  (abstrata — update(), draw())
 
 ### Estruturas de Dados Manuais
 
-Implementadas sem uso de `std::list` ou `std::queue` — requisito da disciplina.
-
 | Classe | Tipo | Descrição |
 |---|---|---|
 | `ItemList` | Lista encadeada manual | Armazena itens coletáveis (páginas, lamparinas, chave, poções). Cada nó possui timer de expiração. |
