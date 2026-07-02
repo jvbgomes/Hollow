@@ -547,7 +547,7 @@ void Game::setupDeposito() {
     // Esquerda → porão fundo (col 0, rows 4-8 = x 0, y 64-128)
     transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true, {272.f, 208.f} });
     // Direita → corredor de saída (col 19, rows 4-8 = x 304, y 64-128)
-    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {32.f, 64.f}, true, {48.f, 32.f} });
+    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {48.f, 144.f}, true, {48.f, 32.f} });
 
     // Chave (placeholder pos, ajustar conforme mapa)
     if (keyItemTex.getSize().x == 0)
@@ -574,14 +574,18 @@ void Game::setupDeposito() {
 
 void Game::setupCorredorSaida() {
     // Esquerda → depósito (col 0, rows 3-6 = x 0, y 48-96)
-    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true });
-    // Porta de saída no final do corredor (cols 26-27, rows 2-7 = x 416, y 32-112)
-    doors.push_back({ {416.f, 32.f, 32.f, 96.f}, Door::Kind::Exit });
+    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true, {48.f, 144.f} });
+    // Porta de saída no final do corredor — tile (27,6)
+    doors.push_back({ {432.f, 96.f, 16.f, 32.f}, Door::Kind::Exit });
 
     // Iluminação esparsa — corredor deve parecer opressivo
     m_lights.push_back({ { 80.f, 80.f}, 40.f, 6.f, 2.8f, 0.0f });
     m_lights.push_back({ {224.f, 80.f}, 38.f, 5.f, 3.0f, 1.8f });
     m_lights.push_back({ {368.f, 80.f}, 35.f, 4.f, 2.5f, 3.2f });
+    m_lights.push_back({ { 16.f, 112.f}, 45.f, 7.f, 2.6f, 0.5f });
+    m_lights.push_back({ { 16.f,  32.f}, 45.f, 7.f, 2.3f, 1.4f });
+    m_lights.push_back({ { 32.f,  32.f}, 45.f, 7.f, 2.1f, 2.2f });
+    m_lights.push_back({ {416.f,  80.f}, 50.f, 8.f, 2.4f, 0.8f });
 }
 
 void Game::resetGame() {
