@@ -499,7 +499,7 @@ void Game::setupPoraoFundo() {
     // Esquerda → porão (col 0, rows 5-9 = x 0, y 80-144)
     transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true, {48.f, 240.f} });
     // Direita → depósito (col 23, rows 5-9 = x 368, y 80-144)
-    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {24.f, 96.f}, true, {304.f, 32.f} });
+    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {272.f, 192.f}, true, {304.f, 32.f} });
 
     if (pageItemTex.getSize().x == 0)
         pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
@@ -545,9 +545,9 @@ void Game::setupPoraoFundo() {
 
 void Game::setupDeposito() {
     // Esquerda → porão fundo (col 0, rows 4-8 = x 0, y 64-128)
-    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true });
+    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true, {272.f, 208.f} });
     // Direita → corredor de saída (col 19, rows 4-8 = x 304, y 64-128)
-    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {32.f, 64.f}, true });
+    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {32.f, 64.f}, true, {48.f, 32.f} });
 
     // Chave (placeholder pos, ajustar conforme mapa)
     if (keyItemTex.getSize().x == 0)
@@ -561,8 +561,15 @@ void Game::setupDeposito() {
     if (itemOk({160.f, 120.f}))
         items.addItem(ItemType::Key, {160.f, 120.f}, keyItemTex, keyRect);
 
-    m_lights.push_back({ {160.f, 80.f},  55.f, 10.f, 2.4f, 0.0f });
+    m_lights.push_back({ {160.f,  80.f}, 55.f, 10.f, 2.4f, 0.0f });
     m_lights.push_back({ {160.f, 160.f}, 40.f,  8.f, 2.7f, 1.9f });
+    m_lights.push_back({ {224.f, 192.f}, 50.f,  8.f, 2.2f, 0.6f });
+    m_lights.push_back({ {208.f, 192.f}, 50.f,  8.f, 2.0f, 1.5f });
+    m_lights.push_back({ {288.f,  96.f}, 50.f,  8.f, 2.4f, 2.3f });
+    m_lights.push_back({ { 80.f,  32.f}, 50.f,  8.f, 2.3f, 0.9f });
+    m_lights.push_back({ { 96.f,  32.f}, 50.f,  8.f, 2.1f, 1.8f });
+    m_lights.push_back({ { 16.f,  32.f}, 50.f,  8.f, 2.5f, 2.7f });
+    m_lights.push_back({ { 32.f,  32.f}, 50.f,  8.f, 2.2f, 0.4f });
 }
 
 void Game::setupCorredorSaida() {
