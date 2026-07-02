@@ -176,14 +176,14 @@ void Game::setupHallPrincipal() {
     // Transição topo → vestíbulo (player sobe pela escadaria)
     transitions.push_back({ {176.f, 48.f, 64.f, 32.f}, "vestibulo", {192.f, 272.f}, true });
 
-    // Passagem esquerda (cols 0, rows 4-5) → quarto da criança
-    transitions.push_back({ {0.f, 62.f, 16.f, 34.f}, "quarto_crianca", {168.f, 120.f}, true });
-    // Passagem direita (col 25, rows 4-5) → biblioteca
-    transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
-    // Entrada inferior esquerda → porão (Thomas)
-    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {400.f, 208.f}, true });
-    // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true });
+    // Passagem esquerda (col 0, rows 3-5) → quarto da criança
+    transitions.push_back({ {0.f, 48.f, 16.f, 48.f}, "quarto_crianca", {168.f, 120.f}, true });
+    // Passagem direita (col 25, rows 3-5) → biblioteca
+    transitions.push_back({ {400.f, 48.f, 16.f, 48.f}, "biblioteca", {40.f, 200.f}, true });
+    // Parede esquerda (col 0, rows 14-16) → porão
+    transitions.push_back({ {0.f, 224.f, 16.f, 48.f}, "porao", {400.f, 208.f}, true, {8.f, 240.f} });
+    // Trigger de chão (tile 25,15) → sala de estar
+    transitions.push_back({ {384.f, 224.f, 32.f, 32.f}, "sala_estar", {16.f, 112.f}, true, {400.f, 236.f} });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -230,8 +230,8 @@ void Game::setupQuartoCrianca() {
 }
 
 void Game::setupBiblioteca() {
-    // Saída esquerda → hall principal
-    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
+    // Saída esquerda → hall principal (col 1, rows 12-16)
+    transitions.push_back({ {0.f, 192.f, 16.f, 80.f}, "hall_principal", {392.f, 76.f}, true, {8.f, 224.f} });
 
     // Eleanor — próxima ao spawn do player (spawn={40,200}), lado direito da entrada
     npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
@@ -322,12 +322,12 @@ void Game::setupBiblioteca() {
 }
 
 void Game::setupSalaEstar() {
-    // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
-    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true });
-    // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
-    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {0.f, 224.f}, true });
-    // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
-    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {0.f, 192.f}, true });
+    // Esquerda → hall principal (col 0, rows 6-8)
+    transitions.push_back({ {0.f, 96.f, 16.f, 48.f}, "hall_principal", {400.f, 240.f}, true, {16.f, 112.f} });
+    // Topo → área externa (cols 12-14, row 0)
+    transitions.push_back({ {192.f, 0.f, 48.f, 32.f}, "area_externa", {0.f, 224.f}, true, {208.f, 32.f} });
+    // Direita → cozinha (col 25, rows 11-13)
+    transitions.push_back({ {400.f, 176.f, 16.f, 48.f}, "cozinha", {0.f, 192.f}, true, {392.f, 192.f} });
 
     m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
     m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
@@ -392,8 +392,8 @@ void Game::setupAreaExterna() {
 }
 
 void Game::setupCozinha() {
-    // Esquerda → sala de estar (col 0, rows 5-9 → pixel x=0, y=80-144)
-    transitions.push_back({ {0.f, 80.f, 16.f, 64.f}, "sala_estar", {384.f, 192.f}, true });
+    // Esquerda → sala de estar (col 0, rows 11-13)
+    transitions.push_back({ {0.f, 176.f, 16.f, 48.f}, "sala_estar", {384.f, 192.f}, true, {8.f, 192.f} });
 
     // Página 3: Registro de 1891 (placeholder, ajustar conforme mapa)
     if (pageItemTex.getSize().x == 0)
@@ -432,9 +432,9 @@ void Game::setupCozinha() {
 }
 
 void Game::setupPorao() {
-    // Topo → hall principal (cols 11-14, row 0 = x 176-224, y 0)
-    transitions.push_back({ {176.f, 0.f, 64.f, 32.f}, "hall_principal", {0.f, 240.f}, true });
-    // Trigger para porão fundo em tile (2,2)
+    // Parede direita (col 25, rows 12-14) → hall principal
+    transitions.push_back({ {400.f, 192.f, 16.f, 48.f}, "hall_principal", {0.f, 240.f}, true, {384.f, 208.f} });
+    // Trigger de chão em tile (2,2) → porão fundo
     transitions.push_back({ {32.f, 32.f, 32.f, 32.f}, "porao_fundo", {48.f, 240.f}, true });
 
     // Thomas — posição placeholder (ajustar conforme mapa do porão)
@@ -496,10 +496,10 @@ void Game::setupPorao() {
 }
 
 void Game::setupPoraoFundo() {
-    // Esquerda → porão (col 0, rows 5-9 = x 0, y 80-144)
-    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true });
-    // Direita → depósito (col 23, rows 5-9 = x 368, y 80-144)
-    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {272.f, 192.f}, true });
+    // Baixo → porão (row 15, cols 2-4)
+    transitions.push_back({ {32.f, 224.f, 48.f, 32.f}, "porao", {384.f, 120.f}, true, {48.f, 240.f} });
+    // Topo → depósito (tile 19,2)
+    transitions.push_back({ {288.f, 0.f, 48.f, 32.f}, "deposito", {272.f, 192.f}, true, {304.f, 32.f} });
 
     if (pageItemTex.getSize().x == 0)
         pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
@@ -544,10 +544,10 @@ void Game::setupPoraoFundo() {
 }
 
 void Game::setupDeposito() {
-    // Esquerda → porão fundo (col 0, rows 4-8 = x 0, y 64-128)
-    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true });
-    // Direita → corredor de saída (col 19, rows 4-8 = x 304, y 64-128)
-    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {48.f, 144.f}, true });
+    // Baixo → porão fundo (row 13, cols 16-17)
+    transitions.push_back({ {256.f, 192.f, 32.f, 32.f}, "porao_fundo", {352.f, 120.f}, true, {272.f, 208.f} });
+    // Topo → corredor de saída (tile 3,2)
+    transitions.push_back({ {32.f, 16.f, 48.f, 32.f}, "corredor_saida", {48.f, 144.f}, true, {48.f, 32.f} });
 
     // Chave (placeholder pos, ajustar conforme mapa)
     if (keyItemTex.getSize().x == 0)
@@ -573,10 +573,10 @@ void Game::setupDeposito() {
 }
 
 void Game::setupCorredorSaida() {
-    // Esquerda → depósito (col 0, rows 3-6 = x 0, y 48-96)
-    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true });
-    // Porta de saída no final do corredor — tile (27,6)
-    doors.push_back({ {432.f, 96.f, 16.f, 32.f}, Door::Kind::Exit });
+    // Baixo → depósito (row 9, cols 2-4)
+    transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {288.f, 96.f}, true, {48.f, 144.f} });
+    // Porta de saída no final do corredor — col 27, rows 5-7
+    doors.push_back({ {432.f, 80.f, 16.f, 48.f}, Door::Kind::Exit });
 
     // Iluminação esparsa — corredor deve parecer opressivo
     m_lights.push_back({ { 80.f, 80.f}, 40.f, 6.f, 2.8f, 0.0f });
