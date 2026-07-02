@@ -345,8 +345,8 @@ void Game::setupSalaEstar() {
 }
 
 void Game::setupAreaExterna() {
-    // Topo → sala de estar (cols 8-13, row 0 → pixel x=128-208, y=0)
-    transitions.push_back({ {128.f, 0.f, 80.f, 32.f}, "sala_estar", {208.f, 64.f}, true });
+    // Baixo → sala de estar (col 0, row 13)
+    transitions.push_back({ {0.f, 192.f, 32.f, 32.f}, "sala_estar", {208.f, 64.f}, true, {0.f, 208.f} });
 
     // Página 2: Anotações de Eleanor (placeholder, ajustar conforme o mapa)
     if (pageItemTex.getSize().x == 0)
