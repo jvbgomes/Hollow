@@ -183,7 +183,7 @@ void Game::setupHallPrincipal() {
     // Entrada inferior esquerda → porão (Thomas)
     transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {170.f, 100.f}, true, {0.f, 240.f} }); //192 e 48
     // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {225.f, 80.f}, true, {400.f, 240.f} });
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true, {400.f, 240.f} });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -323,11 +323,11 @@ void Game::setupBiblioteca() {
 
 void Game::setupSalaEstar() {
     // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
-    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true });
+    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true, {16.f, 112.f} });
     // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
-    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {20.f, 225.f}, true });
+    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {20.f, 225.f}, true, {208.f, 32.f} });
     // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
-    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {20.f, 200.f}, true });
+    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {20.f, 200.f}, true, {400.f, 192.f} });
 
     m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
     m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
@@ -336,7 +336,7 @@ void Game::setupSalaEstar() {
 
 void Game::setupAreaExterna() {
     // Topo → sala de estar (cols 8-13, row 0 → pixel x=128-208, y=0)
-    transitions.push_back({ {128.f, 0.f, 80.f, 32.f}, "sala_estar", {120.f, 240.f}, true });
+    transitions.push_back({ {128.f, 0.f, 80.f, 32.f}, "sala_estar", {208.f, 64.f}, true });
 
     // Página 2: Anotações de Eleanor (placeholder, ajustar conforme o mapa)
     if (pageItemTex.getSize().x == 0)
@@ -374,7 +374,7 @@ void Game::setupAreaExterna() {
 
 void Game::setupCozinha() {
     // Esquerda → sala de estar (col 0, rows 5-9 → pixel x=0, y=80-144)
-    transitions.push_back({ {0.f, 80.f, 16.f, 64.f}, "sala_estar", {384.f, 120.f}, true });
+    transitions.push_back({ {0.f, 80.f, 16.f, 64.f}, "sala_estar", {384.f, 192.f}, true });
 
     // Página 3: Registro de 1891 (placeholder, ajustar conforme mapa)
     if (pageItemTex.getSize().x == 0)
