@@ -118,8 +118,12 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
     else if (room == "cozinha")         setupCozinha();
 
     if (m_bossSpawned) {
+        float mapW = map.getCols() * 16.f;
+        float mapH = map.getRows() * 16.f;
         sf::Vector2f bPos = spawnPos;
-        bPos.x += (bPos.x < 200.f) ? 280.f : -280.f;
+        bPos.x += (bPos.x < mapW * 0.5f) ? 180.f : -180.f;
+        bPos.x = std::max(32.f, std::min(bPos.x, mapW - 32.f));
+        bPos.y = std::max(32.f, std::min(bPos.y, mapH - 32.f));
         enemies.push_back(new Boss(bPos.x, bPos.y));
     }
 }
@@ -1103,8 +1107,12 @@ void Game::checkItemCollection() {
                 audio.playSfx(SfxId::PageCollect);
                 if (!m_bossSpawned && player.getDiaryPages() == totalPages) {
                     m_bossSpawned = true;
+                    float mapW = map.getCols() * 16.f;
+                    float mapH = map.getRows() * 16.f;
                     sf::Vector2f bp = player.getPosition();
-                    bp.x += (bp.x < 200.f) ? 280.f : -280.f;
+                    bp.x += (bp.x < mapW * 0.5f) ? 180.f : -180.f;
+                    bp.x = std::max(32.f, std::min(bp.x, mapW - 32.f));
+                    bp.y = std::max(32.f, std::min(bp.y, mapH - 32.f));
                     enemies.push_back(new Boss(bp.x, bp.y));
                     eventQueue.enqueue("Algo despertou. Fuja agora.");
                     audio.playMusic(MusicTrack::Boss);
