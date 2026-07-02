@@ -122,6 +122,7 @@ private:
     std::vector<Transition> transitions;
     std::string m_currentRoom;
     std::map<std::string, std::set<std::pair<int,int>>> m_presentItems;
+    std::set<std::string> m_clearedRooms;
 
     MusicTrack m_pendingTrack = MusicTrack::None;
     float      m_trackTimer   = 0.f;
@@ -194,6 +195,7 @@ private:
     void checkDoorInteraction();
     void checkTransitions();
     void checkVictoryCondition();
+    sf::Vector2f getBossSpawnPos(const std::string& room) const;
 
     void drawVignette(sf::Color tint);
     void renderMenu();

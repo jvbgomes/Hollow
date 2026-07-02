@@ -81,6 +81,15 @@ Game::~Game() {
 }
 
 void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
+    // Verifica se todos os inimigos não-Boss foram eliminados antes de sair
+    if (!m_currentRoom.empty()) {
+        bool anyNonBossAlive = false;
+        for (Enemy* e : enemies)
+            if (!dynamic_cast<Boss*>(e)) { anyNonBossAlive = true; break; }
+        if (!anyNonBossAlive)
+            m_clearedRooms.insert(m_currentRoom);
+    }
+
     for (Enemy* e : enemies) delete e;
     for (NPC*   n : npcs)    delete n;
     enemies.clear();
@@ -118,13 +127,14 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
     else if (room == "cozinha")         setupCozinha();
 
     if (m_bossSpawned) {
-        float mapW = map.getCols() * 16.f;
-        float mapH = map.getRows() * 16.f;
-        sf::Vector2f bPos = spawnPos;
-        bPos.x += (bPos.x < mapW * 0.5f) ? 180.f : -180.f;
-        bPos.x = std::max(32.f, std::min(bPos.x, mapW - 32.f));
-        bPos.y = std::max(32.f, std::min(bPos.y, mapH - 32.f));
+        sf::Vector2f bPos = getBossSpawnPos(room);
         enemies.push_back(new Boss(bPos.x, bPos.y));
+        if (room == "deposito") {
+            std::string msg = "Boss em deposito: (" +
+                std::to_string((int)bPos.x) + "," +
+                std::to_string((int)bPos.y) + ")";
+            eventQueue.enqueue(msg);
+        }
     }
 }
 
@@ -199,6 +209,9 @@ void Game::setupHallPrincipal() {
     // (7-8, 8-9) e (18-19, 8-9): candelabros 2×2 no andar inferior
     m_lights.push_back({ {128.f, 144.f}, 65.f, 10.f, 2.0f, 2.1f });
     m_lights.push_back({ {304.f, 144.f}, 65.f, 10.f, 2.3f, 0.7f });
+    // (24,13) e (1,13): luminárias adicionais solicitadas
+    m_lights.push_back({ {392.f, 216.f}, 55.f, 8.f, 2.1f, 1.5f });
+    m_lights.push_back({ { 24.f, 216.f}, 55.f, 8.f, 2.4f, 0.9f });
 }
 
 void Game::setupQuartoCrianca() {
@@ -237,7 +250,8 @@ void Game::setupQuartoCrianca() {
     sf::IntRect fullRect(0, 0, 32, 32);
     if (itemOk({48.f, 64.f})) items.addItem(ItemType::Lamp, {48.f, 64.f}, lampItemTex, fullRect, 999.f);
 
-    enemies.push_back(new Shadow(200.f, 64.f));
+    if (!m_clearedRooms.count(m_currentRoom))
+        enemies.push_back(new Shadow(200.f, 64.f));
 }
 
 void Game::setupBiblioteca() {
@@ -270,23 +284,21 @@ void Game::setupBiblioteca() {
 
     // Spectres com patrulha — percorrem a biblioteca como guardiões
     // Biblioteca: 52×21 tiles = 832×336 px, spawn player em (40,200)
-    {
+    if (!m_clearedRooms.count(m_currentRoom)) {
         auto* s1 = new Spectre(200.f, 100.f);
         s1->setWaypoints({
             {200.f, 80.f}, {380.f, 80.f}, {380.f, 200.f},
             {200.f, 200.f}, {200.f, 280.f}, {80.f, 280.f}, {80.f, 140.f}
         });
         enemies.push_back(s1);
-    }
-    {
+
         auto* s2 = new Spectre(580.f, 160.f);
         s2->setWaypoints({
             {500.f, 80.f}, {700.f, 80.f}, {780.f, 180.f},
             {700.f, 290.f}, {500.f, 290.f}, {380.f, 200.f}, {420.f, 100.f}
         });
         enemies.push_back(s2);
-    }
-    {
+
         auto* s3 = new Spectre(680.f, 260.f);
         s3->setWaypoints({
             {680.f, 100.f}, {780.f, 100.f}, {800.f, 200.f},
@@ -304,8 +316,8 @@ void Game::setupBiblioteca() {
         return savedIt->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
     };
     sf::IntRect pageRect(0, 0, 32, 32);
-    if (itemOk({380.f, 120.f}))
-    items.addItem(ItemType::Page, {380.f, 120.f}, pageItemTex, pageRect, 999.f,
+    if (itemOk({760.f, 216.f}))
+    items.addItem(ItemType::Page, {760.f, 216.f}, pageItemTex, pageRect, 999.f,
         "Di\xc3\xa1rio \xe2\x80\x94 Primeiro Dia",
         "A porta fechou atr\xc3\xa1s de mim. N\xc3\xa3o foi\n"
         "o vento \xe2\x80\x94 ouvi o trinco. Algu\xc3\xa9m fechou.\n\n"
@@ -362,8 +374,10 @@ void Game::setupSalaEstar() {
     sf::IntRect fullRect(0, 0, 32, 32);
     if (itemOkSE({200.f, 220.f})) items.addItem(ItemType::Lamp, {200.f, 220.f}, lampItemTex, fullRect, 999.f);
 
-    enemies.push_back(new Shadow(280.f,  80.f));
-    enemies.push_back(new Shadow(320.f, 200.f));
+    if (!m_clearedRooms.count(m_currentRoom)) {
+        enemies.push_back(new Shadow(280.f,  80.f));
+        enemies.push_back(new Shadow(320.f, 200.f));
+    }
 }
 
 void Game::setupAreaExterna() {
@@ -420,10 +434,10 @@ void Game::setupAreaExterna() {
     sf::IntRect fullRect(0, 0, 32, 32);
     if (itemOkAE({400.f, 320.f})) items.addItem(ItemType::Lamp, {400.f, 320.f}, lampItemTex, fullRect, 999.f);
 
-    {
-        auto* sp = new Spectre(320.f, 100.f);
+    if (!m_clearedRooms.count(m_currentRoom)) {
+        auto* sp = new Spectre(320.f, 240.f);
         sp->setWaypoints({
-            {120.f, 100.f}, {520.f, 100.f}, {520.f, 380.f}, {120.f, 380.f}
+            {260.f, 180.f}, {380.f, 180.f}, {380.f, 300.f}, {260.f, 300.f}
         });
         enemies.push_back(sp);
     }
@@ -474,9 +488,10 @@ void Game::setupCozinha() {
         return savedItCoz->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
     };
     sf::IntRect fullRect(0, 0, 32, 32);
-    if (itemOkCoz({200.f, 120.f})) items.addItem(ItemType::Lamp, {200.f, 120.f}, lampItemTex, fullRect, 999.f);
+    if (itemOkCoz({ 80.f, 96.f})) items.addItem(ItemType::Lamp, { 80.f, 96.f}, lampItemTex, fullRect, 999.f);
 
-    enemies.push_back(new Shadow(240.f, 80.f));
+    if (!m_clearedRooms.count(m_currentRoom))
+        enemies.push_back(new Shadow(240.f, 80.f));
 }
 
 void Game::setupPorao() {
@@ -549,6 +564,8 @@ void Game::setupPorao() {
     };
     sf::IntRect fullRect(0, 0, 32, 32);
     if (itemOkPor({320.f, 80.f})) items.addItem(ItemType::Lamp, {320.f, 80.f}, lampItemTex, fullRect, 999.f);
+    sf::IntRect healRect(0, 0, 32, 32);
+    if (itemOkPor({280.f, 160.f})) items.addItem(ItemType::Heal, {280.f, 160.f}, healItemTex, healRect, 999.f);
 }
 
 void Game::setupPoraoFundo() {
@@ -606,7 +623,7 @@ void Game::setupPoraoFundo() {
     sf::IntRect fullRect(0, 0, 32, 32);
     if (itemOkPF({200.f, 180.f})) items.addItem(ItemType::Lamp, {200.f, 180.f}, lampItemTex, fullRect, 999.f);
 
-    {
+    if (!m_clearedRooms.count(m_currentRoom)) {
         auto* sp = new Spectre(200.f, 130.f);
         sp->setWaypoints({
             {80.f, 80.f}, {300.f, 80.f}, {300.f, 190.f}, {80.f, 190.f}
@@ -643,8 +660,10 @@ void Game::setupDeposito() {
     m_lights.push_back({ { 16.f,  32.f}, 50.f,  8.f, 2.5f, 2.7f });
     m_lights.push_back({ { 32.f,  32.f}, 50.f,  8.f, 2.2f, 0.4f });
 
-    enemies.push_back(new Shadow( 80.f, 64.f));
-    enemies.push_back(new Shadow(240.f, 160.f));
+    if (!m_clearedRooms.count(m_currentRoom)) {
+        enemies.push_back(new Shadow( 80.f, 96.f));
+        enemies.push_back(new Shadow(240.f, 160.f));
+    }
 }
 
 void Game::setupCorredorSaida() {
@@ -653,7 +672,7 @@ void Game::setupCorredorSaida() {
     // Porta de saída no final do corredor — col 27, rows 5-7
     doors.push_back({ {432.f, 80.f, 16.f, 48.f}, Door::Kind::Exit });
 
-    {
+    if (!m_clearedRooms.count(m_currentRoom)) {
         auto* sp = new Spectre(200.f, 80.f);
         sp->setWaypoints({
             {100.f, 80.f}, {380.f, 80.f}
@@ -682,6 +701,7 @@ void Game::resetGame() {
     dialogueBox.close();
     pageReader.close();
     m_bossSpawned = false;
+    m_clearedRooms.clear();
 
     mainMenuOption  = 0;
     characterOption = 0;
@@ -875,7 +895,8 @@ void Game::updatePlaying(float dt) {
     m_bossWasNearby = bossNearby;
 
     // Spawn dos Shadows ao descer a escadaria (tiles 11-14, row 10)
-    if (m_currentRoom == "hall_principal" && !m_hallShadowsSpawned) {
+    if (m_currentRoom == "hall_principal" && !m_hallShadowsSpawned
+        && !m_clearedRooms.count("hall_principal")) {
         sf::FloatRect stairExit(176.f, 158.f, 64.f, 20.f);
         if (stairExit.intersects(player.getBounds())) {
             m_hallShadowsSpawned = true;
@@ -1107,12 +1128,7 @@ void Game::checkItemCollection() {
                 audio.playSfx(SfxId::PageCollect);
                 if (!m_bossSpawned && player.getDiaryPages() == totalPages) {
                     m_bossSpawned = true;
-                    float mapW = map.getCols() * 16.f;
-                    float mapH = map.getRows() * 16.f;
-                    sf::Vector2f bp = player.getPosition();
-                    bp.x += (bp.x < mapW * 0.5f) ? 180.f : -180.f;
-                    bp.x = std::max(32.f, std::min(bp.x, mapW - 32.f));
-                    bp.y = std::max(32.f, std::min(bp.y, mapH - 32.f));
+                    sf::Vector2f bp = getBossSpawnPos(m_currentRoom);
                     enemies.push_back(new Boss(bp.x, bp.y));
                     eventQueue.enqueue("Algo despertou. Fuja agora.");
                     audio.playMusic(MusicTrack::Boss);
@@ -1335,6 +1351,22 @@ void Game::checkDoorInteraction() {
         }
         return;
     }
+}
+
+sf::Vector2f Game::getBossSpawnPos(const std::string& room) const {
+    // Posições verificadas contra a layer Collision de cada TMX
+    if (room == "vestibulo")       return {272.f, 200.f};
+    if (room == "hall_principal")  return {208.f, 192.f};
+    if (room == "quarto_crianca")  return { 96.f, 128.f};
+    if (room == "biblioteca")      return {400.f, 200.f};
+    if (room == "sala_estar")      return {350.f, 200.f};
+    if (room == "area_externa")    return {300.f, 280.f};
+    if (room == "cozinha")         return {256.f,  96.f};
+    if (room == "porao")           return {160.f, 140.f};
+    if (room == "porao_fundo")     return {120.f, 166.f};
+    if (room == "deposito")        return {216.f, 104.f};
+    if (room == "corredor_saida")  return {300.f,  96.f};
+    return {160.f, 150.f};
 }
 
 void Game::checkVictoryCondition() {
