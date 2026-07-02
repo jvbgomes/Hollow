@@ -545,7 +545,7 @@ void Game::setupPoraoFundo() {
 
 void Game::setupDeposito() {
     // Baixo → porão fundo (row 13, cols 16-17)
-    transitions.push_back({ {256.f, 192.f, 32.f, 32.f}, "porao_fundo", {352.f, 120.f}, true, {272.f, 208.f} });
+    transitions.push_back({ {256.f, 192.f, 32.f, 32.f}, "porao_fundo", {304.f, 64.f}, true, {272.f, 208.f} });
     // Topo → corredor de saída (tile 3,2)
     transitions.push_back({ {32.f, 16.f, 48.f, 32.f}, "corredor_saida", {48.f, 144.f}, true, {48.f, 32.f} });
 
@@ -574,7 +574,7 @@ void Game::setupDeposito() {
 
 void Game::setupCorredorSaida() {
     // Baixo → depósito (row 9, cols 2-4)
-    transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {288.f, 96.f}, true, {48.f, 144.f} });
+    transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {48.f, 64.f}, true, {48.f, 144.f} });
     // Porta de saída no final do corredor — col 27, rows 5-7
     doors.push_back({ {432.f, 80.f, 16.f, 48.f}, Door::Kind::Exit });
 

@@ -56,7 +56,10 @@ bool Map::loadTileset(Tileset& ts, const std::string& tsxPath) {
     if (imgPos == std::string::npos) return false;
 
     std::string imgSrc = attr(content.substr(imgPos), "source");
-    return ts.texture.loadFromFile(dirOf(tsxPath) + imgSrc);
+    if (!ts.texture.loadFromFile(dirOf(tsxPath) + imgSrc)) return false;
+    ts.texture.setSmooth(false);
+    ts.texture.setRepeated(false);
+    return true;
 }
 
 bool Map::parseTMX(const std::string& path) {
