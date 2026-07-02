@@ -183,7 +183,7 @@ void Game::setupHallPrincipal() {
     // Entrada inferior esquerda → porão (Thomas)
     transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {400.f, 208.f}, true, {0.f, 240.f} }); //192 e 48
     // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true, {400.f, 240.f} });
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true, {312.f, 244.f} });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
