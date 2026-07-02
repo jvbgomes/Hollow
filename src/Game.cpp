@@ -149,7 +149,7 @@ void Game::setupLevel() {
     // Porta emperrada dir: tile (22,10) → centro (360,168)
     doors.push_back({ {344.f, 152.f, 32.f, 32.f}, Door::Kind::Locked });
     // Passagem sul → hall: cloud próxima ao tile (12,17) → trigger.top=272, cloud y=260
-    transitions.push_back({ {160.f, 272.f, 64.f, 32.f}, "hall_principal", {208.f, 76.f}, true, {200.f, 296.f} });
+    transitions.push_back({ {160.f, 272.f, 64.f, 32.f}, "hall_principal", {208.f, 76.f}, true });
 
     // Fontes de luz: pos, raioBase, flickerAmt, flickerSpeed, phase
     // Candelabro esq  (tiles 9,2-4): chama no tile (9,2) → pixel (152,40)
@@ -181,9 +181,9 @@ void Game::setupHallPrincipal() {
     // Passagem direita (col 25, rows 4-5) → biblioteca
     transitions.push_back({ {400.f, 62.f, 16.f, 34.f}, "biblioteca", {40.f, 200.f}, true });
     // Entrada inferior esquerda → porão (Thomas)
-    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {400.f, 208.f}, true, {0.f, 240.f} }); //192 e 48
+    transitions.push_back({ {0.f, 200.f, 32.f, 32.f}, "porao", {400.f, 208.f}, true });
     // Passagem inferior direita → sala de estar (cols 17-21, rows 16-17)
-    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true, {312.f, 244.f} });
+    transitions.push_back({ {272.f, 256.f, 80.f, 32.f}, "sala_estar", {16.f, 112.f}, true });
 
     // Fontes de luz do hall
     // (22,1) e (17,3): velas/candelabros individuais no andar superior
@@ -196,7 +196,7 @@ void Game::setupHallPrincipal() {
 
 void Game::setupQuartoCrianca() {
     // Saída direita → hall principal (col 17, rows 6-9 = y=96-160)
-    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true, {264.f, 120.f} }); 
+    transitions.push_back({ {256.f, 96.f, 32.f, 64.f}, "hall_principal", {24.f, 76.f}, true });
 
     // Luzes: (col,row) → pixel centro = col*16, row*16
     m_lights.push_back({ {256.f,  64.f}, 50.f, 8.f, 2.1f, 0.0f });  // (16,4)
@@ -231,7 +231,7 @@ void Game::setupQuartoCrianca() {
 
 void Game::setupBiblioteca() {
     // Saída esquerda → hall principal
-    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true, {0.f, 224.f} });
+    transitions.push_back({ {0.f, 158.f, 20.f, 82.f}, "hall_principal", {392.f, 76.f}, true });
 
     // Eleanor — próxima ao spawn do player (spawn={40,200}), lado direito da entrada
     npcTexEleanor.loadFromFile("assets/maps/sprites/npcs/eleanor/eleanor.png");
@@ -323,11 +323,11 @@ void Game::setupBiblioteca() {
 
 void Game::setupSalaEstar() {
     // Topo → hall principal (cols 13-17, row 0 → pixel x=208-272, y=0)
-    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true, {16.f, 112.f} });
+    transitions.push_back({ {208.f, 0.f, 64.f, 32.f}, "hall_principal", {400.f, 240.f}, true });
     // Baixo → área externa (cols 5-10, row 17 → pixel x=80-160, y=272)
-    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {0.f, 224.f}, true, {208.f, 32.f} });
+    transitions.push_back({ {80.f, 256.f, 80.f, 32.f}, "area_externa", {0.f, 224.f}, true });
     // Direita → cozinha (col 25, rows 5-9 → pixel x=400, y=80-144)
-    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {0.f, 192.f}, true, {400.f, 192.f} });
+    transitions.push_back({ {400.f, 80.f, 16.f, 64.f}, "cozinha", {0.f, 192.f}, true });
 
     m_lights.push_back({ {208.f,  48.f}, 55.f, 9.f, 2.1f, 0.0f });
     m_lights.push_back({ {320.f, 144.f}, 60.f, 8.f, 2.4f, 1.2f });
@@ -497,9 +497,9 @@ void Game::setupPorao() {
 
 void Game::setupPoraoFundo() {
     // Esquerda → porão (col 0, rows 5-9 = x 0, y 80-144)
-    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true, {48.f, 240.f} });
+    transitions.push_back({ {0.f, 80.f, 16.f, 80.f}, "porao", {384.f, 120.f}, true });
     // Direita → depósito (col 23, rows 5-9 = x 368, y 80-144)
-    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {272.f, 192.f}, true, {304.f, 32.f} });
+    transitions.push_back({ {368.f, 80.f, 16.f, 80.f}, "deposito", {272.f, 192.f}, true });
 
     if (pageItemTex.getSize().x == 0)
         pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
@@ -545,9 +545,9 @@ void Game::setupPoraoFundo() {
 
 void Game::setupDeposito() {
     // Esquerda → porão fundo (col 0, rows 4-8 = x 0, y 64-128)
-    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true, {272.f, 208.f} });
+    transitions.push_back({ {0.f, 64.f, 16.f, 80.f}, "porao_fundo", {352.f, 120.f}, true });
     // Direita → corredor de saída (col 19, rows 4-8 = x 304, y 64-128)
-    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {48.f, 144.f}, true, {48.f, 32.f} });
+    transitions.push_back({ {304.f, 64.f, 16.f, 80.f}, "corredor_saida", {48.f, 144.f}, true });
 
     // Chave (placeholder pos, ajustar conforme mapa)
     if (keyItemTex.getSize().x == 0)
@@ -574,7 +574,7 @@ void Game::setupDeposito() {
 
 void Game::setupCorredorSaida() {
     // Esquerda → depósito (col 0, rows 3-6 = x 0, y 48-96)
-    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true, {48.f, 144.f} });
+    transitions.push_back({ {0.f, 48.f, 16.f, 64.f}, "deposito", {288.f, 96.f}, true });
     // Porta de saída no final do corredor — tile (27,6)
     doors.push_back({ {432.f, 96.f, 16.f, 32.f}, Door::Kind::Exit });
 
@@ -1038,10 +1038,9 @@ void Game::checkItemCollection() {
                     std::string ltU  = loreTitle.empty()
                                        ? "P\xc3\xa1" "gina do Di\xc3\xa1rio"
                                        : loreTitle;
+                    static const std::string kPageHdr = "P\xc3\x81GINA DO DI\xc3\x81RIO";
                     showObjPopup(
-                        sf::String::fromUtf8(
-                            std::string("P\xc3\x81GINA DO DI\xc3\x81RIO").begin(),
-                            std::string("P\xc3\x81GINA DO DI\xc3\x81RIO").end()),
+                        sf::String::fromUtf8(kPageHdr.begin(), kPageHdr.end()),
                         sf::String::fromUtf8(ltU.begin(), ltU.end()),
                         sf::String::fromUtf8(prog.begin(), prog.end()),
                         sf::Color(255, 200, 55),
@@ -2418,15 +2417,6 @@ void Game::renderPlaying() {
         window.draw(itemPromptText);
     };
 
-    if (m_itemNearby && !dialogueBox.isActive() && !pageReader.isOpen())
-        drawBalloon(m_itemPromptPos);
-
-    if (m_npcNearby && !pageReader.isOpen())
-        drawBalloon(m_npcPromptPos);
-
-    if (m_doorNearby && !dialogueBox.isActive() && !pageReader.isOpen())
-        drawBalloon(m_doorPromptPos);
-
     // --- Iluminação estilo Mad Father ---
     {
         static const float PLAYER_R = 130.f;
@@ -2474,6 +2464,16 @@ void Game::renderPlaying() {
         window.draw(overlay, mulBlend);
     }
     // --- fim da iluminação ---
+
+    // Balões desenhados APÓS a lightmap para não serem cobertos por ela
+    window.setView(camera);
+    if (m_itemNearby && !dialogueBox.isActive() && !pageReader.isOpen())
+        drawBalloon(m_itemPromptPos);
+    if (m_npcNearby && !pageReader.isOpen())
+        drawBalloon(m_npcPromptPos);
+    if (m_doorNearby && !dialogueBox.isActive() && !pageReader.isOpen())
+        drawBalloon(m_doorPromptPos);
+    window.setView(window.getDefaultView());
 
     dialogueBox.draw(window);
     eventQueue.draw(window);
