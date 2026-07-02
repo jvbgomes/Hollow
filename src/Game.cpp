@@ -324,8 +324,8 @@ void Game::setupBiblioteca() {
 void Game::setupSalaEstar() {
     // Esquerda → hall principal (col 0, rows 6-8)
     transitions.push_back({ {0.f, 96.f, 16.f, 48.f}, "hall_principal", {400.f, 240.f}, true, {16.f, 112.f} });
-    // Topo → área externa (cols 12-14, row 0)
-    transitions.push_back({ {192.f, 0.f, 48.f, 32.f}, "area_externa", {0.f, 224.f}, true, {208.f, 32.f} });
+    // Topo → área externa (cols 12-14, rows 1-2)
+    transitions.push_back({ {192.f, 16.f, 48.f, 32.f}, "area_externa", {0.f, 224.f}, true, {208.f, 32.f} });
     // Direita → cozinha (col 25, rows 11-13)
     transitions.push_back({ {400.f, 176.f, 16.f, 48.f}, "cozinha", {0.f, 192.f}, true, {392.f, 192.f} });
 
