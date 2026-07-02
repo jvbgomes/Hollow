@@ -86,6 +86,7 @@ void Player::handleInput() {
     if (m_moving) {
         float len = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
         m_lastDir = velocity / len;
+        velocity  = m_lastDir * spd;
     }
 }
 

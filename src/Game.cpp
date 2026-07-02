@@ -116,12 +116,15 @@ void Game::loadRoom(const std::string& room, sf::Vector2f spawnPos) {
     else if (room == "sala_estar")      setupSalaEstar();
     else if (room == "area_externa")    setupAreaExterna();
     else if (room == "cozinha")         setupCozinha();
+
+    if (m_bossSpawned) {
+        sf::Vector2f bPos = spawnPos;
+        bPos.x += (bPos.x < 200.f) ? 280.f : -280.f;
+        enemies.push_back(new Boss(bPos.x, bPos.y));
+    }
 }
 
 void Game::setupLevel() {
-    npcTexCrianca.loadFromFile("assets/maps/sprites/npcs/crianca/crianca.png");
-
-
     pageItemTex.loadFromFile("assets/maps/sprites/items_book.png");
     lampItemTex.loadFromFile("assets/maps/sprites/items_candle.png");
     keyItemTex.loadFromFile("assets/tilesets/PropsV2.png");
@@ -138,8 +141,8 @@ void Game::setupLevel() {
     };
 
     // Vestíbulo: apenas lamparinas — páginas e chave redistribuídas pelos cômodos
-    if (itemOk({166.f,  86.f})) items.addItem(ItemType::Lamp, {166.f,  86.f}, lampItemTex, fullRect);
-    if (itemOk({236.f,  86.f})) items.addItem(ItemType::Lamp, {236.f,  86.f}, lampItemTex, fullRect);
+    if (itemOk({166.f,  86.f})) items.addItem(ItemType::Lamp, {166.f,  86.f}, lampItemTex, fullRect, 999.f);
+    if (itemOk({236.f,  86.f})) items.addItem(ItemType::Lamp, {236.f,  86.f}, lampItemTex, fullRect, 999.f);
 
     // Portas do vestibulo — posições centradas nos tiles indicados pelo usuário
     // Entrada mansão: tile (11,3) → centro pixel (184,56); cloud = center - 16px vertical
@@ -859,7 +862,6 @@ void Game::updatePlaying(float dt) {
     checkProjectileHits();
     checkItemCollection();
     updateObjPopup(dt);
-    checkVictoryCondition();
 
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         if (!(*it)->isAlive()) {
@@ -1023,10 +1025,10 @@ void Game::checkItemCollection() {
             case ItemType::Page: {
                 player.addPage();
                 audio.playSfx(SfxId::PageCollect);
-                if (m_currentRoom == "area_externa" && !m_bossSpawned) {
+                if (!m_bossSpawned && player.getDiaryPages() == totalPages) {
                     m_bossSpawned = true;
                     sf::Vector2f bp = player.getPosition();
-                    bp.x -= 300.f;
+                    bp.x += (bp.x < 200.f) ? 280.f : -280.f;
                     enemies.push_back(new Boss(bp.x, bp.y));
                     eventQueue.enqueue("Algo despertou. Fuja agora.");
                     audio.playMusic(MusicTrack::Boss);
@@ -1282,10 +1284,6 @@ void Game::render() {
 }
 
 void Game::drawVignette(sf::Color tint) {
-    sf::RectangleShape grad(sf::Vector2f(800.f, 600.f));
-    grad.setPosition(0.f, 0.f);
-    grad.setFillColor(sf::Color(tint.r, tint.g, tint.b, 0)); 
- 
     auto edge = [&](float x, float y, float w, float h, int alpha) {
         sf::RectangleShape r(sf::Vector2f(w, h));
         r.setPosition(x, y);

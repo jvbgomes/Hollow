@@ -93,7 +93,7 @@ HUD::HUD() {
 
     // Sprites
     const float SCALE = 0.5f;
-    if (m_pageTex.loadFromFile("assets/maps/sprites/items_page.png")) {
+    if (m_pageTex.loadFromFile("assets/maps/sprites/items_book.png")) {
         m_pageSprite.setTexture(m_pageTex);
         m_pageSprite.setScale(SCALE, SCALE);
         m_pageSprite.setPosition(697.f, 4.f);
