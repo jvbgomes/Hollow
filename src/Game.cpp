@@ -230,6 +230,10 @@ void Game::setupQuartoCrianca() {
     };
     sf::IntRect healRect(0, 0, 32, 32);
     if (itemOk({80.f, 160.f})) items.addItem(ItemType::Heal, {80.f, 160.f}, healItemTex, healRect, 999.f);
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOk({48.f, 64.f})) items.addItem(ItemType::Lamp, {48.f, 64.f}, lampItemTex, fullRect, 999.f);
+
+    enemies.push_back(new Shadow(200.f, 64.f));
 }
 
 void Game::setupBiblioteca() {
@@ -345,6 +349,17 @@ void Game::setupSalaEstar() {
     m_lights.push_back({ {384.f,  32.f}, 55.f, 8.f, 2.5f, 2.3f });
     m_lights.push_back({ { 32.f, 208.f}, 55.f, 8.f, 2.3f, 1.5f });
     m_lights.push_back({ { 16.f, 208.f}, 55.f, 8.f, 2.1f, 2.8f });
+
+    auto savedItSE = m_presentItems.find("sala_estar");
+    auto itemOkSE  = [&](sf::Vector2f pos) -> bool {
+        if (savedItSE == m_presentItems.end()) return true;
+        return savedItSE->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOkSE({200.f, 220.f})) items.addItem(ItemType::Lamp, {200.f, 220.f}, lampItemTex, fullRect, 999.f);
+
+    enemies.push_back(new Shadow(280.f,  80.f));
+    enemies.push_back(new Shadow(320.f, 200.f));
 }
 
 void Game::setupAreaExterna() {
@@ -392,6 +407,22 @@ void Game::setupAreaExterna() {
     m_lights.push_back({ { 80.f, 448.f}, 60.f, 5.f, 2.0f, 1.9f });
     m_lights.push_back({ { 16.f, 176.f}, 55.f, 7.f, 2.5f, 0.5f });
     m_lights.push_back({ { 16.f, 272.f}, 55.f, 7.f, 2.3f, 2.7f });
+
+    auto savedItAE = m_presentItems.find("area_externa");
+    auto itemOkAE  = [&](sf::Vector2f pos) -> bool {
+        if (savedItAE == m_presentItems.end()) return true;
+        return savedItAE->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOkAE({400.f, 320.f})) items.addItem(ItemType::Lamp, {400.f, 320.f}, lampItemTex, fullRect, 999.f);
+
+    {
+        auto* sp = new Spectre(320.f, 100.f);
+        sp->setWaypoints({
+            {120.f, 100.f}, {520.f, 100.f}, {520.f, 380.f}, {120.f, 380.f}
+        });
+        enemies.push_back(sp);
+    }
 }
 
 void Game::setupCozinha() {
@@ -432,6 +463,16 @@ void Game::setupCozinha() {
     m_lights.push_back({ {208.f,  64.f}, 55.f,  9.f, 2.1f, 1.6f });
     m_lights.push_back({ {224.f,  64.f}, 55.f,  9.f, 2.3f, 3.0f });
     m_lights.push_back({ { 16.f, 160.f}, 55.f,  8.f, 2.5f, 1.0f });
+
+    auto savedItCoz = m_presentItems.find("cozinha");
+    auto itemOkCoz  = [&](sf::Vector2f pos) -> bool {
+        if (savedItCoz == m_presentItems.end()) return true;
+        return savedItCoz->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOkCoz({200.f, 120.f})) items.addItem(ItemType::Lamp, {200.f, 120.f}, lampItemTex, fullRect, 999.f);
+
+    enemies.push_back(new Shadow(240.f, 80.f));
 }
 
 void Game::setupPorao() {
@@ -496,6 +537,14 @@ void Game::setupPorao() {
     m_lights.push_back({ { 16.f,  96.f}, 50.f, 8.f, 2.3f, 0.9f });
     m_lights.push_back({ { 16.f, 176.f}, 50.f, 8.f, 2.1f, 1.7f });
     m_lights.push_back({ { 32.f, 176.f}, 50.f, 8.f, 2.5f, 3.0f });
+
+    auto savedItPor = m_presentItems.find("porao");
+    auto itemOkPor  = [&](sf::Vector2f pos) -> bool {
+        if (savedItPor == m_presentItems.end()) return true;
+        return savedItPor->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOkPor({320.f, 80.f})) items.addItem(ItemType::Lamp, {320.f, 80.f}, lampItemTex, fullRect, 999.f);
 }
 
 void Game::setupPoraoFundo() {
@@ -544,6 +593,22 @@ void Game::setupPoraoFundo() {
     m_lights.push_back({ {288.f,  32.f}, 45.f, 7.f, 2.5f, 2.9f });
     m_lights.push_back({ {336.f,  32.f}, 45.f, 7.f, 2.3f, 0.3f });
     m_lights.push_back({ {352.f,  32.f}, 45.f, 7.f, 2.1f, 1.9f });
+
+    auto savedItPF = m_presentItems.find("porao_fundo");
+    auto itemOkPF  = [&](sf::Vector2f pos) -> bool {
+        if (savedItPF == m_presentItems.end()) return true;
+        return savedItPF->second.count({(int)std::round(pos.x), (int)std::round(pos.y)}) > 0;
+    };
+    sf::IntRect fullRect(0, 0, 32, 32);
+    if (itemOkPF({200.f, 180.f})) items.addItem(ItemType::Lamp, {200.f, 180.f}, lampItemTex, fullRect, 999.f);
+
+    {
+        auto* sp = new Spectre(200.f, 130.f);
+        sp->setWaypoints({
+            {80.f, 80.f}, {300.f, 80.f}, {300.f, 190.f}, {80.f, 190.f}
+        });
+        enemies.push_back(sp);
+    }
 }
 
 void Game::setupDeposito() {
@@ -573,6 +638,9 @@ void Game::setupDeposito() {
     m_lights.push_back({ { 96.f,  32.f}, 50.f,  8.f, 2.1f, 1.8f });
     m_lights.push_back({ { 16.f,  32.f}, 50.f,  8.f, 2.5f, 2.7f });
     m_lights.push_back({ { 32.f,  32.f}, 50.f,  8.f, 2.2f, 0.4f });
+
+    enemies.push_back(new Shadow( 80.f, 64.f));
+    enemies.push_back(new Shadow(240.f, 160.f));
 }
 
 void Game::setupCorredorSaida() {
@@ -580,6 +648,14 @@ void Game::setupCorredorSaida() {
     transitions.push_back({ {32.f, 128.f, 48.f, 32.f}, "deposito", {48.f, 80.f}, true, {48.f, 144.f} });
     // Porta de saída no final do corredor — col 27, rows 5-7
     doors.push_back({ {432.f, 80.f, 16.f, 48.f}, Door::Kind::Exit });
+
+    {
+        auto* sp = new Spectre(200.f, 80.f);
+        sp->setWaypoints({
+            {100.f, 80.f}, {380.f, 80.f}
+        });
+        enemies.push_back(sp);
+    }
 
     // Iluminação esparsa — corredor deve parecer opressivo
     m_lights.push_back({ { 80.f, 80.f}, 40.f, 6.f, 2.8f, 0.0f });
